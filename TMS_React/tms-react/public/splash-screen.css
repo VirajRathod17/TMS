@@ -41,3 +41,30 @@ body {
 [data-theme="dark"] .splash-screen span {
   color: #92929F;
 }
+
+
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+}
+
+.ship-wheel {
+  width: 80px;
+  height: 80px;
+  background: url('https://img.icons8.com/ios-filled/100/000000/ship-wheel.png') no-repeat center center;
+  background-size: cover;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+      transform: rotate(0deg);
+  }
+  to {
+      transform: rotate(360deg);
+  }
+}
