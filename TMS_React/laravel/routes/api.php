@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
+    // Route::group(['prefix' => 'tms-backend'], function () {
+        Route::post('admin-login', 'LoginController@login')->name('admin-login');
+    // });
 });
