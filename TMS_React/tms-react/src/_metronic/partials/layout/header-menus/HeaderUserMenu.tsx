@@ -33,7 +33,7 @@ const HeaderUserMenu: FC = () => {
 
       <div className='menu-item px-5'>
         <Link to={'/crafted/pages/profile'} className='menu-link px-5'>
-          My Profile
+        User Profile
         </Link>
       </div>
 
