@@ -14,7 +14,8 @@ const PrivateRoutes = () => {
   return (
     <Routes>
       <Route element={<MasterLayout />}>
-        <Route path='auth/*' element={<Navigate to='/dashboard' />} />
+        {/* Redirect to Dashboard after success login/registartion */}
+        <Route path='login/*' element={<Navigate to='/dashboard' />} />
         <Route path='dashboard' element={<DashboardWrapper />} />
         {/* <Route path='auth/*' element={<Navigate to='/award' />} /> */}
         {/* <Route path='award' element={<Create />} /> */}
