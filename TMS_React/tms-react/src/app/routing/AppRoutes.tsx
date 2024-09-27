@@ -7,29 +7,25 @@ import { PrivateRoutes } from './PrivateRoutes'
 const { PUBLIC_URL } = process.env
 
 const AppRoutes: FC = () => {
-  const { currentUser } = useAuth()
-  
+  const token = localStorage.getItem('jwt_token');
   return (
     <BrowserRouter basename={PUBLIC_URL}>
       <Routes>
         <Route element={<App />}>
           <Route path='logout' element={<Logout />} />
-          
-          {currentUser ? (
+          {token ? (
             <>
               {/* Render the private routes after login */}
               <Route path='/*' element={<PrivateRoutes />} />
               {/* Redirect to dashboard after login */}
               <Route index element={<Navigate to='/dashboard' />} />
             </>
-          ) : (
+           ) : ( 
             <>
-              {/* Change the path to '/login' instead of '/auth' */}
               <Route path='login/*' element={<AuthPage />} />
-              {/* Redirect all unknown paths to '/login' */}
               <Route path='*' element={<Navigate to='/login' />} />
             </>
-          )}
+           )} 
         </Route>
       </Routes>
     </BrowserRouter>

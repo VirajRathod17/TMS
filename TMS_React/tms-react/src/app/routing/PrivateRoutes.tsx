@@ -13,7 +13,8 @@ const PrivateRoutes = () => {
   return (
     <Routes>
       <Route element={<MasterLayout />}>
-        {/* Redirect to Dashboard after success login */}
+        {/* Redirect to Dashboard after success login/registartion */}
+        <Route path='login/*' element={<Navigate to='/dashboard' />} />
         <Route path='dashboard' element={<DashboardWrapper />} />
         {/* Award Category route */}
         <Route path='award-category' element={<Create />} />

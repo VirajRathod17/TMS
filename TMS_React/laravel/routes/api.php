@@ -20,5 +20,6 @@ use Illuminate\Support\Facades\Route;
 Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
     // Route::group(['prefix' => 'tms-backend'], function () {
         Route::post('admin-login', 'LoginController@login')->name('admin-login');
+        Route::post('logout', 'LoginController@logout')->name('logout');
     // });
 });
