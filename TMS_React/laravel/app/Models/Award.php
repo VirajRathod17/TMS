@@ -66,4 +66,8 @@ class Award extends Model implements JWTSubject
 
         return $count ? "{$slug}-{$count}" : $slug;
     }
+    public function getAuthIdentifierName()
+    {
+        return 'id'; // Assuming 'id' is the primary key
+    }
 }

@@ -22,4 +22,8 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::post('admin-login', 'LoginController@login')->name('admin-login');
         Route::post('logout', 'LoginController@logout')->name('logout');
     // });
+    Route::middleware(['auth:api'])->group(function () {
+        Route::post('/awards', [AwardController::class, 'store']);
+    });
+    
 });
