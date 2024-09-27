@@ -15,6 +15,12 @@ export function AsideMenuMain() {
         title='Dashboard'
         fontIcon='bi-app-indicator'
       />
+      <AsideMenuItem
+        to='/award'
+        icon='/media/icons/duotune/art/art002.svg'
+        title='Award'
+        fontIcon='bi-app-indicator'
+      />
     </>
   )
 }

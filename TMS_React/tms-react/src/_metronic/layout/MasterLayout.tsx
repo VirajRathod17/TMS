@@ -4,7 +4,7 @@ import {AsideDefault} from './components/aside/AsideDefault'
 import {Footer} from './components/Footer'
 import {HeaderWrapper} from './components/header/HeaderWrapper'
 import {ScrollTop} from './components/ScrollTop'
-// import {Content} from './components/Content'
+import {Content} from './components/Content'
 import {PageDataProvider} from './core'
 import {useLocation} from 'react-router-dom'
 import {MenuComponent} from '../assets/ts/components'
@@ -32,9 +32,9 @@ const MasterLayout = () => {
 
             <div id='kt_content' className='content d-flex flex-column flex-column-fluid'>
               <div className='post d-flex flex-column-fluid' id='kt_post'>
-                {/* <Content>
+                <Content>
                   <Outlet />
-                </Content> */}
+                </Content>
               </div>
             </div>
             <Footer />

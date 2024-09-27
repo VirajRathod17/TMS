@@ -5,10 +5,11 @@ import TopBarProgress from 'react-topbar-progress-indicator'
 import {DashboardWrapper} from '../pages/dashboard/DashboardWrapper'
 import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
+// import Create from '../modules/awards/components/create'
 
 
 const PrivateRoutes = () => {
-
+  const Index = lazy(() => import('../modules/awards/components/index'))
 
   return (
     <Routes>
@@ -16,6 +17,16 @@ const PrivateRoutes = () => {
         {/* Redirect to Dashboard after success login/registartion */}
         <Route path='login/*' element={<Navigate to='/dashboard' />} />
         <Route path='dashboard' element={<DashboardWrapper />} />
+        {/* <Route path='auth/*' element={<Navigate to='/award' />} /> */}
+        {/* <Route path='award' element={<Create />} /> */}
+        <Route
+          path='/award'
+          element={
+            <SuspensedView>
+              <Index />
+            </SuspensedView>
+          }
+        />
       </Route>
     </Routes>
   )
