@@ -30,11 +30,10 @@ class LoginController extends Controller
             return response()->json($this->responseData);
         }
 
-        // $password = Hash::make($request->password);
          // Find the admin by email
-         $admin = Admin::where('email',$request->email)->where('password', $request->password)->first();
+         $admin = Admin::where('email',$request->email)->first();
            // Check if admin exists and if the password matches
-        if ($admin){
+        if ($admin && Hash::check($request->password, $admin->password)) {
             // Generate JWT token
             $token = JWTAuth::fromUser($admin);
 
@@ -48,6 +47,23 @@ class LoginController extends Controller
             $this->responseData['status'] = 'error';
             $this->responseData['message'] = "Invalid email or password";
             $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        try {
+
+            JWTAuth::invalidate(JWTAuth::parseToken());
+
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = "Logout successful, token destroyed.";
+            return response()->json($this->responseData);
+        } catch (\Exception $e) {
+            
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = "Logout failed, unable to destroy token.";
             return response()->json($this->responseData);
         }
     }
