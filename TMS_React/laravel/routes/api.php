@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,4 +23,7 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::post('admin-login', 'LoginController@login')->name('admin-login');
         Route::post('logout', 'LoginController@logout')->name('logout');
     // });
+
+    Route::middleware('auth:api')->post('/update-profile', [LoginController::class, 'updateProfile']);
+
 });

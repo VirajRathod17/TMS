@@ -6,6 +6,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import axios,{AxiosError} from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const loginSchema = Yup.object().shape({
   email: Yup.string()
     .email('Wrong email format')
@@ -35,8 +37,8 @@ export function Login() {
       setStatus(null);
 
       try {
-        // API request to login
-        const response = await axios.post('http://127.0.0.1:8000/api/admin-login', {
+       
+        const response = await axios.post(`${API_BASE_URL}admin-login`, {
           email: values.email,
           password: values.password,
         });
@@ -149,15 +151,6 @@ export function Login() {
             </span>
           )}
         </button>
-      </div>
-
-      <div className='text-center mb-10'>
-        <div className='text-gray-400 fw-bold fs-4'>
-          New Here?{' '}
-          <Link to='/auth/registration' className='link-primary fw-bolder'>
-            Create an Account
-          </Link>
-        </div>
       </div>
     </form>
   );
