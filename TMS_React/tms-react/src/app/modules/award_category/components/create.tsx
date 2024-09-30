@@ -12,9 +12,9 @@ function Create() {
 			</div>
 			<div id="kt_app_content" className="app-content flex-column-fluid mt-6">
 				<div id="kt_app_content_container" className="app-container container-fluid">
-					<form className="form d-flex flex-column flex-lg-row" id="form-input" encType="multipart/form-data">
+					{/* <form className="form d-flex flex-column flex-lg-row" id="form-input" encType="multipart/form-data"> */}
 						<Form />
-					</form>
+					{/* </form> */}
 				</div>
 			</div>
 		</div>

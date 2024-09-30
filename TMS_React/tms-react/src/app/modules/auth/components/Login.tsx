@@ -46,6 +46,8 @@ export function Login() {
         if (status === 'success') {
           // Save the token to localStorage
           localStorage.setItem('jwt_token', token);
+          console.log(token);
+          
 
           navigate("/");
           window.location.reload();

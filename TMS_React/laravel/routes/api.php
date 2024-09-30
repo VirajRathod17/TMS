@@ -18,8 +18,10 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
-    // Route::group(['prefix' => 'tms-backend'], function () {
-        Route::post('admin-login', 'LoginController@login')->name('admin-login');
-        Route::post('logout', 'LoginController@logout')->name('logout');
-    // });
+    Route::post('admin-login', 'LoginController@login')->name('admin-login');
+    Route::post('logout', 'LoginController@logout')->name('logout');
+
+    Route::middleware('auth:api')->group(function () {
+        Route::resource('award-category', 'AwardCategoryController');
+    }); 
 });

@@ -5,21 +5,30 @@ import TopBarProgress from 'react-topbar-progress-indicator'
 import {DashboardWrapper} from '../pages/dashboard/DashboardWrapper'
 import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
-import Create from '../modules/award_category/components/create'
+import { dynamicRoutes } from './dynamicRoutes';
+
+
 
 const PrivateRoutes = () => {
-
+  const Create = lazy(() => import('../modules/award_category/components/create'));
 
   return (
     <Routes>
       <Route element={<MasterLayout />}>
-        {/* Redirect to Dashboard after success login/registartion */}
+        {/* {/ Redirect to Dashboard after success login/registartion /} */}
         <Route path='login/*' element={<Navigate to='/dashboard' />} />
         <Route path='dashboard' element={<DashboardWrapper />} />
-        {/* Award Category route */}
-        <Route path='award-category' element={<Create />} />
-        {/* Redirect auth paths to dashboard, if needed */}
-        <Route path='login/*' element={<Navigate to='/dashboard' />} />
+        {dynamicRoutes.map(({ path, component: Component }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <SuspensedView>
+                <Component />
+              </SuspensedView>
+            }
+          />
+        ))}
       </Route>
     </Routes>
   )

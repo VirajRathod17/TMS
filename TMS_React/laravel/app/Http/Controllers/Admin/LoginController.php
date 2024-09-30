@@ -8,6 +8,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 class LoginController extends Controller
 {
     public function login(Request $request)
@@ -36,7 +37,7 @@ class LoginController extends Controller
         if ($admin && Hash::check($request->password, $admin->password)) {
             // Generate JWT token
             $token = JWTAuth::fromUser($admin);
-
+        
             // Return success response
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Login successful";
