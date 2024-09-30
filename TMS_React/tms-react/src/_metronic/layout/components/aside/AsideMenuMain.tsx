@@ -17,7 +17,7 @@ export function AsideMenuMain() {
       />
 
       <AsideMenuItem
-        to='/award_category/create'
+        to='/award_category'
         icon='/media/icons/duotune/art/art002.svg'
         title='Award Category'
         fontIcon='bi-app-indicator'

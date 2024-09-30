@@ -1,49 +1,94 @@
-import React from 'react';
-import { useFormik } from 'formik';
+import React, { useState, useEffect } from 'react';
+import { useFormik, FormikErrors } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { env } from 'process';
-import {Link, useNavigate } from 'react-router-dom';
-function Form() {
+import { Link, useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import '../../loader.css';
+import Loader from '../../loader';
+
+// Define the types for the props
+interface FormProps {
+  mode: 'create' | 'edit';
+  initialValues: {
+    name: string;
+    award_id: string;
+    main_sponsored_id: string;
+    status: string;
+    description?: string;
+  };
+  submitUrl: string;
+  redirectUrl: string;
+  successMessage: string;
+}
+
+// The Form component with proper types
+const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage }) => {
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
   const formik = useFormik({
-    initialValues: {
-      name: '',
-      award_id: '',
-      main_sponsor_id: '',
-      status: '',
-      description: '',
-    },
+    initialValues: initialValues,
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
       award_id: Yup.string().required('Year is required'),
-      main_sponsor_id: Yup.string().required('Main Sponsor is required'),
+      main_sponsored_id: Yup.string().required('Main Sponsor is required'),
       status: Yup.string().required('Status is required'),
       description: Yup.string().max(500, 'Description must be 500 characters or less'),
     }),
     onSubmit: async (values) => {
+      setLoading(true); // Show loader
       try {
-        // Get JWT token (assuming it's stored in localStorage or sessionStorage)
-        const token = localStorage.getItem('jwt_token'); // or sessionStorage.getItem('jwtToken');
+        const token = localStorage.getItem('jwt_token');
 
-        // Send form data to the server via axios, passing JWT token in the Authorization header
-        const response = await axios.post(
-          process.env.REACT_APP_API_BASE_URL + 'award-category', 
-          values,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // Pass the token in Authorization header
-            },
-          }
-        );
+           // Explicitly type the method as 'post' | 'put'
+           let method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
+        
+           // Only include `id` in the URL if it's available (in edit mode)
+           let url = mode === 'edit' ? `${submitUrl}` : submitUrl;
+   
+           const response = await axios({
+             method: method,
+             url: url,
+             data: values,
+             headers: {
+               Authorization: `Bearer ${token}`,
+             },
+           });
 
+        if (response.data.status === 'success') {
+          Swal.fire({
+            title: 'Success',
+            text: successMessage,
+            icon: 'success',
+            confirmButtonText: 'OK',
+          }).then(() => {
+            navigate(redirectUrl);
+            formik.resetForm();
+          });
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: response.data.message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+          });
+        }
       } catch (error) {
         console.log('Error submitting form:', error);
+      } finally {
+        setLoading(false); // Hide loader
       }
     },
   });
 
+  useEffect(() => {
+    formik.setValues(initialValues);
+  }, [initialValues]);
+
   return (
-    <div>
+    <>
+      {loading && <Loader />}
       <div className="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
         <div className="tab-content">
           <div className="tab-pane fade show active" id="kt_ecommerce_add_product_basic" role="tabpanel">
@@ -51,7 +96,7 @@ function Form() {
               <div className="card card-flush">
                 <div className="card-header">
                   <div className="card-title">
-                    <h2>Add Award Category</h2>
+                    <h2>{mode === 'create' ? 'Add Award Category' : 'Edit Award Category'}</h2>
                   </div>
                 </div>
                 <div className="card-body pt-0">
@@ -67,12 +112,15 @@ function Form() {
                           value={formik.values.name}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
+                          minLength={3} 
+                          maxLength={30}
                         />
                         {formik.touched.name && formik.errors.name ? (
-                          <span className="text-danger">{formik.errors.name}</span>
+                          <span className="text-danger">{formik.errors.name as string}</span>
                         ) : null}
                       </div>
 
+                      {/* Similar code for other fields like Year, Main Sponsor, Status, Description */}
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Year</label>
                         <select
@@ -87,25 +135,25 @@ function Form() {
                           <option value="2021">2021</option>
                         </select>
                         {formik.touched.award_id && formik.errors.award_id ? (
-                          <span className="text-danger">{formik.errors.award_id}</span>
+                          <span className="text-danger">{formik.errors.award_id as string}</span>
                         ) : null}
                       </div>
 
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Main Sponsor</label>
                         <select
-                          name="main_sponsor_id"
+                          name="main_sponsored_id"
                           className="form-control mb-2"
-                          value={formik.values.main_sponsor_id}
+                          value={formik.values.main_sponsored_id}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
                         >
                           <option value="">Select Main Sponsor</option>
-                          <option value="0">TMS</option>
-                          <option value="1">Test</option>
+                          <option value="0">Sponsor 1</option>
+                          <option value="1">Sponsor 2</option>
                         </select>
-                        {formik.touched.main_sponsor_id && formik.errors.main_sponsor_id ? (
-                          <span className="text-danger">{formik.errors.main_sponsor_id}</span>
+                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id ? (
+                          <span className="text-danger">{formik.errors.main_sponsored_id as string}</span>
                         ) : null}
                       </div>
 
@@ -123,30 +171,30 @@ function Form() {
                           <option value="0">Inactive</option>
                         </select>
                         {formik.touched.status && formik.errors.status ? (
-                          <div className="text-danger">{formik.errors.status}</div>
+                          <span className="text-danger">{formik.errors.status as string}</span>
                         ) : null}
                       </div>
-
-                      <div className="col-md-4 fv-row">
-                        <label className="form-label manager-code">Description</label>
+                        
+                      <div className="col-md-8 fv-row">
+                        <label className="required form-label manager-code">Description</label>
                         <textarea
                           name="description"
                           className="form-control mb-2"
-                          placeholder="Enter your description"
+                          placeholder="Enter Description"
                           value={formik.values.description}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
                         />
                         {formik.touched.description && formik.errors.description ? (
-                          <div className="text-danger">{formik.errors.description}</div>
+                          <span className="text-danger">{formik.errors.description as string}</span>
                         ) : null}
                       </div>
-                    </div>
 
-					<div className="d-flex justify-content-end py-4">
-						<Link to="#" className="btn btn-sm btn-flex bg-body btn-color-primary-700 btn-active-color-primary fw-bold me-5" style={{ marginLeft: '10px' }}>Cancel</Link>
-						<button type="submit" className="btn btn-primary">Submit</button>
-					</div>
+                    </div>
+                    <div className="d-flex justify-content-end py-4">
+                      <Link to="#" className="btn btn-sm btn-flex bg-body btn-color-primary-700 btn-active-color-primary fw-bold me-5" style={{ marginLeft: '10px' }}>Cancel</Link>
+                      <button type="submit" className="btn btn-primary">Submit</button>
+                    </div>
                   </form>
                 </div>
               </div>
@@ -154,7 +202,7 @@ function Form() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
