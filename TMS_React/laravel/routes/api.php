@@ -23,7 +23,13 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::post('logout', 'LoginController@logout')->name('logout');
     // });
     Route::middleware(['auth:api'])->group(function () {
-        Route::post('/awards', [AwardController::class, 'store']);
+
+        // Award Management
+        Route::resource('/awards', 'AwardController');
+        Route::group(['controller' => 'AwardController'], function () {
+            Route::get('awards-datatable', 'getAwardsDatatable')->name('awards-datatable');
+        });
+        
     });
     
 });

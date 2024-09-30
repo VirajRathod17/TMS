@@ -32,4 +32,9 @@ class Admin extends Model implements JWTSubject
     {
         return [];
     }
+
+    public function getAuthIdentifierName()
+    {
+        return 'id';
+    }
 }
