@@ -6,6 +6,7 @@ import {DashboardWrapper} from '../pages/dashboard/DashboardWrapper'
 import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
 import UpdateProfile from '../modules/auth/components/UpdateProfile'
+import ChangePassword from '../modules/auth/components/ChangePassword'
 
 const isTokenExpired = () => {
   const expirationTime = localStorage.getItem('jwt_expiration');
@@ -26,6 +27,8 @@ const PrivateRoutes = () => {
         <Route path='login/*' element={<Navigate to='/dashboard' />} />
         <Route path='dashboard' element={<DashboardWrapper />} />
         <Route path='/profile' element={<UpdateProfile/>} />
+        <Route path='/change-password' element={<ChangePassword/>} />
+
       </Route>
     </Routes>
   )

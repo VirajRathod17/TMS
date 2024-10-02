@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+
 class LoginController extends Controller
 {
 
@@ -34,7 +35,7 @@ class LoginController extends Controller
 
          // Find the admin by email
          $admin = Admin::where('email',$request->email)->first();
-           // Check if admin exists and if the password matches
+         
         if ($admin && Hash::check($request->password, $admin->password)) {
             // Generate JWT token
             $token = JWTAuth::fromUser($admin);
@@ -154,27 +155,78 @@ class LoginController extends Controller
     public function getProfile()
     {
         // Authenticate user
-        // $user = JWTAuth::parseToken()->authenticate();
         $user = Auth::guard('api')->user();
-        // dd($user);
+    
         if (!$user) {
             $this->responseData['status'] = 'error';
             $this->responseData['message'] = 'User not found.';
             return response()->json($this->responseData, 404);
         }
     
+        // Use the getImage function to retrieve the full image path
+        $user->image = Admin::getImage($user->id, $user->image);
+    
         // Return user data one by one
-        $imagePath = url('public/admin/profile/' . $user->id . '/');
         $this->responseData['status'] = 'success';
         $this->responseData['message'] = 'Profile retrieved successfully.';
         $this->responseData['data'] = [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'image' => $user->image ? $imagePath . $user->image : null,
+            'image' => $user->image,
         ];
+        
         return response()->json($this->responseData);
     }
-    
+
+
+    public function changePassword(Request $request)
+    {
+        // Authenticate user
+        $user = JWTAuth::parseToken()->authenticate();
+
+        // Validate request data
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8|confirmed',
+        ],
+        [
+            'current_password.required' => 'Current password is required',
+            'new_password.required' => 'New password is required',
+            'new_password.min' => 'New password must be at least 8 characters',
+            'new_password.confirmed' => 'New passwords do not match',
+        ]);
+
+        // Check if validation fails
+        if ($validator->fails()) {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = $validator->errors()->first();
+            return response()->json($this->responseData);
+        }
+
+        // Check if the current password is correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = 'Current password is incorrect.';
+            return response()->json($this->responseData);
+        }
+
+        try {
+            // Update the user's password
+            $user->password = Hash::make($request->new_password);
+            $user->save();
+
+            // Return success response
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = 'Password changed successfully.';
+            return response()->json($this->responseData);
+        } catch (\Exception $e) {
+            // Handle any errors
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = 'Password change failed. Please try again.';
+            return response()->json($this->responseData);
+        }
+    }
+
 
 }

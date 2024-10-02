@@ -74,8 +74,8 @@ const HeaderUserMenu: FC = () => {
       </div>
 
       <div className='menu-item px-5 my-1'>
-        <Link to='/crafted/account/settings' className='menu-link px-5'>
-          Account Settings
+        <Link to='/change-password' className='menu-link px-5'>
+         Change Password
         </Link>
       </div>
 
