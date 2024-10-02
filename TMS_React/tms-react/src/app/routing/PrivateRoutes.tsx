@@ -10,7 +10,7 @@ import { dynamicRoutes } from './dynamicRoutes';
 
 
 const PrivateRoutes = () => {
-  const Index = lazy(() => import('../modules/award_category/components/index'));
+  const Index = lazy(() => import('../modules/award-category/components/index'));
 
   return (
     <Routes>

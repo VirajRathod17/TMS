@@ -132,4 +132,51 @@ class AwardCategoryController extends Controller
             return response()->json($this->responseData);
         }
     }
+
+    public function destroy($id)
+    {
+        $awardCategory = AwardCategory::find($id);
+        if($awardCategory)
+        {
+            $awardCategory->delete();
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = "Award Category deleted successfully";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+        else
+        {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = "Award Category not found";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+    }
+
+    public function multipleDelete(Request $request)
+    {
+        $awardCategories = $request->ids;
+        if($awardCategories)
+        {
+            foreach($awardCategories as $id)
+            {
+                $awardCategory = AwardCategory::find($id);
+                if($awardCategory)
+                {
+                    $awardCategory->delete();
+                }
+            }
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = "Award Categories deleted successfully";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+        else
+        {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = "Award Categories not found";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+    }
 }

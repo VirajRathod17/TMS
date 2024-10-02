@@ -50,7 +50,7 @@ function Edit() {
               mode="edit"
               initialValues={initialValues}
               submitUrl={process.env.REACT_APP_API_BASE_URL + `award-category/${id}`}
-              redirectUrl="/award_category"
+              redirectUrl="/award-category"
               successMessage="Award Category has been updated successfully"
             />
           ) : (

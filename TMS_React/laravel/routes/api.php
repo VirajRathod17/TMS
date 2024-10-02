@@ -23,5 +23,8 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
 
     Route::middleware('auth:api')->group(function () {
         Route::resource('award-category', 'AwardCategoryController');
+        Route::group(['controller' => 'AwardCategoryController'], function () {
+            Route::post('award-category-multiple-delete', 'multipleDelete')->name('award-category-multiple-delete');
+        });
     }); 
 });
