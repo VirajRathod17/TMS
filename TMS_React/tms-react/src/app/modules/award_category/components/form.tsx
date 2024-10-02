@@ -4,8 +4,8 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import '../../loader.css';
-import Loader from '../../loader';
+import '../../include/loader.css';
+import Loader from '../../include/loader';
 
 // Define the types for the props
 interface FormProps {

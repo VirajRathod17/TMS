@@ -1,6 +1,6 @@
 import React from 'react';
 import Form from './form';
-
+import Breadcrumb from '../../include/breadcrumbs';
 function Create() {
   const initialValues = {
     name: '',
@@ -10,12 +10,15 @@ function Create() {
     description: '',
   };
 
+  const breadcrumb = [
+    {label:'Manage Award Categories', url: '/award_category'},
+    {label:'Add Award Categories', url: ''},
+  ]
   return (
-    <div>
       <div className="d-flex flex-column flex-column-fluid">
         <div id="kt_app_toolbar" className="app-toolbar">
           <div id="kt_app_toolbar_container" className="app-container">
-            {/* Toolbar content */}
+            <Breadcrumb breadcrumbs={breadcrumb} />
           </div>
         </div>
         <div id="kt_app_content" className="app-content flex-column-fluid mt-6">
@@ -30,7 +33,6 @@ function Create() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 

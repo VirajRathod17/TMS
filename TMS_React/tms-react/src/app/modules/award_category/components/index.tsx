@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import '../../loader.css';
-import Loader from '../../loader';
+import '../../include/loader.css';
+import Loader from '../../include/loader';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-
+import Breadcrumb from '../../include/breadcrumbs';
 // Define the type for award category
 interface AwardCategory {
     id: number;  // or string, depending on your backend
@@ -42,6 +42,11 @@ function Index() {
         fetchAwardCategories();
     }, []);
 
+
+    const breadcrumb = [
+        {label: 'Manage Award Categories', url: ''},
+    ]
+
     // Display loader while fetching
     if (loading) {
         return <Loader />;
@@ -50,12 +55,12 @@ function Index() {
     return (
         <div className="d-flex flex-column flex-column-fluid">
             <div id="kt_app_toolbar" className="app-toolbar mb-5 mt-5">
-                <div id="kt_app_toolbar_container" className="app-container container-fluid">
-                    {/* Toolbar Content */}
+                <div id="kt_app_toolbar_container" className="app-container">
+                    <Breadcrumb breadcrumbs={breadcrumb} />
                 </div>
             </div>
             <div id="kt_app_content" className="app-content flex-column-fluid">
-                <div id="kt_app_content_container" className="app-container container-fluid">
+                <div id="kt_app_content_container" className="app-container">
                     <div className="card card-flush mb-5">
                         <div className="card-body pt-6 pb-3">
                             {/* Card Body Content */}

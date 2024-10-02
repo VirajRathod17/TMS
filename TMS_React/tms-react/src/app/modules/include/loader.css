@@ -18,3 +18,17 @@
     100% { transform: rotate(360deg); }
   }
   
+
+
+  /* Bread Crumb css */
+
+  .breadcrumb {
+    background: #fff !important;
+    /* border: 1px solid #F4E6C3 !important; */
+    padding: 12px !important;
+    border-radius: 0.625rem !important;
+}
+
+.breadcrumb a {
+    color: black !important;
+}

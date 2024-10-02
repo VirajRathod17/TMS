@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Form from './form';
-import '../../loader.css';
-import Loader from '../../loader';
+import '../../include/loader.css';
+import Loader from '../../include/loader';
+import Breadcrumb from '../../include/breadcrumbs';
 function Edit() {
   const { id } = useParams(); // Assuming you get the ID from the URL
   const [initialValues, setInitialValues] = useState(null);
@@ -30,19 +31,33 @@ function Edit() {
     fetchAwardCategory();
   }, [id]);
 
+
+  const breadcrumb = [
+    {label:'Manage Award Categories', url: '/award_category'},
+    {label:'Edit Award Categories', url: ''},
+  ]
   return (
-    <div>
-      {initialValues ? (
-        <Form
-          mode="edit"
-          initialValues={initialValues}
-          submitUrl={process.env.REACT_APP_API_BASE_URL + `award-category/${id}`}
-          redirectUrl="/award_category"
-          successMessage="Award Category has been updated successfully"
-        />
-      ) : (
-       loading &&  <Loader />
-      )}
+    <div className="d-flex flex-column flex-column-fluid">
+      <div id="kt_app_toolbar" className="app-toolbar">
+        <div id="kt_app_toolbar_container" className="app-container">
+          <Breadcrumb breadcrumbs={breadcrumb} />
+        </div>
+      </div>
+      <div id="kt_app_content" className="app-content flex-column-fluid mt-6">
+        <div id="kt_app_content_container" className="app-container">
+          {initialValues ? (
+            <Form
+              mode="edit"
+              initialValues={initialValues}
+              submitUrl={process.env.REACT_APP_API_BASE_URL + `award-category/${id}`}
+              redirectUrl="/award_category"
+              successMessage="Award Category has been updated successfully"
+            />
+          ) : (
+          loading &&  <Loader />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
