@@ -1,17 +1,10 @@
+import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom'
+import { Logout, AuthPage, useAuth } from '../modules/auth'
+import { App } from '../App'
+import { lazy, FC, Suspense } from 'react'
+import { PrivateRoutes } from './PrivateRoutes'
 
-import {FC} from 'react'
-import {Routes, Route, BrowserRouter, Navigate} from 'react-router-dom'
-import {PrivateRoutes} from './PrivateRoutes'
-// import {ErrorsPage} from '../modules/errors/ErrorsPage'
-import {Logout, AuthPage, useAuth} from '../modules/auth'
-import {App} from '../App'
-
-/**
- * Base URL of the website.
- *
- * @see https://facebook.github.io/create-react-app/docs/using-the-public-folder
- */
-const {PUBLIC_URL} = process.env
+const { PUBLIC_URL } = process.env
 
 const AppRoutes: FC = () => {
   const token = localStorage.getItem('jwt_token');
@@ -22,7 +15,9 @@ const AppRoutes: FC = () => {
           <Route path='logout' element={<Logout />} />
           {token ? (
             <>
+              {/* Render the private routes after login */}
               <Route path='/*' element={<PrivateRoutes />} />
+              {/* Redirect to dashboard after login */}
               <Route index element={<Navigate to='/dashboard' />} />
             </>
            ) : ( 
@@ -37,4 +32,4 @@ const AppRoutes: FC = () => {
   )
 }
 
-export {AppRoutes}
+export { AppRoutes }

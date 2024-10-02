@@ -40,7 +40,7 @@ const AsideDefault: FC = () => {
             <img
               alt='Logo'
               className='h-55px logo'
-              src={toAbsoluteUrl('/17235424742000834.png')}
+              src={toAbsoluteUrl('/media/logos/17235424742000834.png')}
             />
           </Link>
         )}
@@ -49,7 +49,7 @@ const AsideDefault: FC = () => {
             <img
               alt='Logo'
               className='h-25px logo'
-              src={toAbsoluteUrl('/media/logos/default.svg')}
+              src={toAbsoluteUrl('/media/logos/17235424742000834.png')}
             />
           </Link>
         )}
