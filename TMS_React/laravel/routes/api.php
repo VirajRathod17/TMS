@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,10 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
     Route::post('logout', 'LoginController@logout')->name('logout');
 
     Route::middleware('auth:api')->group(function () {
+        Route::post('/update-profile', [LoginController::class, 'updateProfile'])->name('updateProfile');
+        Route::any('/get-user', [LoginController::class, 'getProfile'])->name('get-user'); // Ensure this is correct
+        
+        
         Route::resource('award-category', 'AwardCategoryController');
         Route::group(['controller' => 'AwardCategoryController'], function () {
             Route::post('award-category-multiple-delete', 'multipleDelete')->name('award-category-multiple-delete');
