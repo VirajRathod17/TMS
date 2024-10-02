@@ -5,6 +5,7 @@ import Breadcrumb from '../../include/breadcrumbs';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import {Helmet} from 'react-helmet';
 
 interface AwardCategory {
     id: number;
@@ -18,6 +19,12 @@ function Index() {
     const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+    const pageTitle = 'Manage Award Categories'; // Dynamic page title
+
+    useEffect(() => {
+        document.title = pageTitle; 
+    }, [pageTitle]); 
 
     useEffect(() => {
         const fetchAwardCategories = async () => {
@@ -145,6 +152,9 @@ function Index() {
 
     return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
+            <Helmet>
+                <title>{pageTitle}</title>
+            </Helmet>
             <div className="d-flex flex-column flex-column-fluid">
                 <div id="kt_app_toolbar" className="app-toolbar mb-5">
                     <Breadcrumb breadcrumbs={breadcrumbs} />
@@ -160,7 +170,7 @@ function Index() {
                             <div className="card-body pt-5">
                                 <div className="d-flex flex-stack mb-5">
                                     <div className="d-flex align-items-center position-relative my-1">
-                                        <h2 className="mb-0">Award Category</h2>
+                                        <h2 className="mb-0">{pageTitle}</h2>
                                     </div>
                                     <div className="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
                                     {selectedIds.length === 0 && ( // Conditionally render Add button if no items are selected

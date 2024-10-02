@@ -1,6 +1,7 @@
-import React from 'react';
+import React,{ useEffect } from 'react';
 import Form from './form';
 import Breadcrumb from '../../include/breadcrumbs';
+import {Helmet} from 'react-helmet';
 function Create() {
   const initialValues = {
     name: '',
@@ -9,6 +10,11 @@ function Create() {
     status: '',
     description: '',
   };
+  const pageTitle = 'Add Award Categories'; 
+
+  useEffect(() => {
+      document.title = pageTitle; 
+  }, [pageTitle]); 
 
   const breadcrumb = [
     {label:'Manage Award Categories', url: '/award_category'},
@@ -16,6 +22,9 @@ function Create() {
   ]
   return (
       <div className="d-flex flex-column flex-column-fluid">
+         <Helmet>
+              <title>{pageTitle}</title>
+          </Helmet>
         <div id="kt_app_toolbar" className="app-toolbar">
           <div id="kt_app_toolbar_container" className="app-container">
             <Breadcrumb breadcrumbs={breadcrumb} />
@@ -29,6 +38,7 @@ function Create() {
               submitUrl={process.env.REACT_APP_API_BASE_URL + 'award-category'}
               redirectUrl="/award-category"
               successMessage="Award Category has been created successfully"
+              pageTitle={pageTitle}
             />
           </div>
         </div>

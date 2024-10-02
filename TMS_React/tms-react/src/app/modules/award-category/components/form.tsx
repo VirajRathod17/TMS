@@ -20,10 +20,11 @@ interface FormProps {
   submitUrl: string;
   redirectUrl: string;
   successMessage: string;
+  pageTitle: string;
 }
 
 // The Form component with proper types
-const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage }) => {
+const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
@@ -96,7 +97,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
               <div className="card card-flush">
                 <div className="card-header">
                   <div className="card-title">
-                    <h2>{mode === 'create' ? 'Add Award Category' : 'Edit Award Category'}</h2>
+                    <h2>{pageTitle}</h2>
                   </div>
                 </div>
                 <div className="card-body pt-0">

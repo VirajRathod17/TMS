@@ -5,10 +5,18 @@ import Form from './form';
 import '../../include/loader.css';
 import Loader from '../../include/loader';
 import Breadcrumb from '../../include/breadcrumbs';
+import {Helmet} from 'react-helmet';
 function Edit() {
   const { id } = useParams(); // Assuming you get the ID from the URL
   const [initialValues, setInitialValues] = useState(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const pageTitle = 'Edit Award Categories'; 
+
+  useEffect(() => {
+      document.title = pageTitle; 
+  }, [pageTitle]); 
+
   useEffect(() => {
 
     // Fetch existing data for the item to be edited
@@ -38,6 +46,9 @@ function Edit() {
   ]
   return (
     <div className="d-flex flex-column flex-column-fluid">
+       <Helmet>
+            <title>{pageTitle}</title>
+        </Helmet>
       <div id="kt_app_toolbar" className="app-toolbar">
         <div id="kt_app_toolbar_container" className="app-container">
           <Breadcrumb breadcrumbs={breadcrumb} />
@@ -52,6 +63,7 @@ function Edit() {
               submitUrl={process.env.REACT_APP_API_BASE_URL + `award-category/${id}`}
               redirectUrl="/award-category"
               successMessage="Award Category has been updated successfully"
+              pageTitle={pageTitle}
             />
           ) : (
           loading &&  <Loader />
