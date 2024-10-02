@@ -8,6 +8,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
 
@@ -73,7 +74,7 @@ class LoginController extends Controller
     {
         // Authenticate user
         $user = JWTAuth::parseToken()->authenticate();
-    
+
         // Validate request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:255',
@@ -89,55 +90,90 @@ class LoginController extends Controller
             'image.mimes' => 'Allowed image formats are jpeg, png, jpg, gif',
             'image.max' => 'Image size must be less than 2MB',
         ]);
-    
+
         // Check if validation fails
         if ($validator->fails()) {
             $this->responseData['status'] = 'error';
             $this->responseData['message'] = $validator->errors()->first();
             return response()->json($this->responseData);
         }
-    
+
         try {
-           
+            // Update basic info
             $user->name = $request->input('name');
             $user->email = $request->input('email');
-    
+
             // Handle image upload
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
-    
-                // path
+                
+                // Path where images are stored
                 $imagePath = 'admin/profile/' . $user->id;
-    
+                
+                // Check if user already has an image and delete the old one
+                if ($user->image) {
+                    $existingImagePath = public_path($imagePath . '/' . $user->image);
+                    
+                    if (file_exists($existingImagePath)) {
+                        unlink($existingImagePath); // Delete old image
+                    }
+                }
+
                 // Create the directory if it doesn't exist
                 if (!file_exists(public_path($imagePath))) {
                     mkdir(public_path($imagePath), 0777, true);
                 }
-    
+
                 // Generate a unique image name with random number
                 $randomNumber = rand(100000, 999999); 
                 $imageName = $randomNumber . '_' . time() . '.' . $image->getClientOriginalExtension();
-    
+
+                // Move the image to the user's profile directory
                 $image->move(public_path($imagePath), $imageName);
-    
-                // Save 
+
+                // Save the new image name in the database
                 $user->image = $imageName;
             }
-    
+
             $user->save();
-    
+
             // Return success response
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = 'Profile updated successfully';
-            $this->responseData['data'] = $user; 
+            $this->responseData['data'] = $user; // Optional, to return the updated user data
             return response()->json($this->responseData);
-    
+
         } catch (\Exception $e) {
             // Handle any errors
             $this->responseData['status'] = 'error';
             $this->responseData['message'] = 'Profile update failed. Please try again.';
             return response()->json($this->responseData);
         }
+    }
+
+    public function getProfile()
+    {
+        // Authenticate user
+        // $user = JWTAuth::parseToken()->authenticate();
+        $user = Auth::guard('api')->user();
+        // dd($user);
+        if (!$user) {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = 'User not found.';
+            return response()->json($this->responseData, 404);
+        }
+    
+        // Return user data one by one
+        $imagePath = url('public/admin/profile/' . $user->id . '/');
+        $this->responseData['status'] = 'success';
+        $this->responseData['message'] = 'Profile retrieved successfully.';
+        $this->responseData['data'] = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'image' => $user->image ? $imagePath . $user->image : null,
+        ];
+        return response()->json($this->responseData);
     }
     
 

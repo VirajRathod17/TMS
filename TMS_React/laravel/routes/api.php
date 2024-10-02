@@ -24,6 +24,10 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::post('logout', 'LoginController@logout')->name('logout');
     // });
 
-    Route::middleware('auth:api')->post('/update-profile', [LoginController::class, 'updateProfile']);
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/update-profile', [LoginController::class, 'updateProfile'])->name('updateProfile');
+        Route::any('/get-user', [LoginController::class, 'getProfile'])->name('get-user'); // Ensure this is correct
+    });
+    
 
 });

@@ -7,9 +7,17 @@ import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
 import UpdateProfile from '../modules/auth/components/UpdateProfile'
 
+const isTokenExpired = () => {
+  const expirationTime = localStorage.getItem('jwt_expiration');
+  return expirationTime ? new Date().getTime() > Number(expirationTime) : true;
+};
 
 const PrivateRoutes = () => {
 
+  if (isTokenExpired()) {
+    // Redirect to login if the token is expired
+    return <Navigate to="/login" />
+  }
 
   return (
     <Routes>
