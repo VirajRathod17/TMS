@@ -27,7 +27,7 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         // Award Management
         Route::resource('/awards', 'AwardController');
         Route::group(['controller' => 'AwardController'], function () {
-            Route::get('awards-datatable', 'getAwardsDatatable')->name('awards-datatable');
+            Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('award-delete-multiple-datatable');
         });
         
     });

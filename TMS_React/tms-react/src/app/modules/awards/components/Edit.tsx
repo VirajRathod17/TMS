@@ -1,27 +1,45 @@
-import React from 'react';
-import Form from './form'
-
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import Form from './form';
 
 function Edit() {
+  const { id } = useParams();
+  const [initialValues, setInitialValues] = useState(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchAward = async () => {
+      setLoading(true);
+      const token = localStorage.getItem('jwt_token');
+      const response = await axios.get(
+        process.env.REACT_APP_API_BASE_URL + `/awards/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.data) {
+        setInitialValues(response.data.data);
+        setLoading(false);
+      }
+    };
+    fetchAward();
+  }, [id]);
+
   return (
     <div>
-          <div className="d-flex flex-column flex-column-fluid">
-			<div id="kt_app_toolbar" className="app-toolbar">
-				<div id="kt_app_toolbar_container" className="app-container container-fluid">
-					{/* @include('Admin.includes.breadcrumb') */}
-				</div>
-			</div>
-			<div id="kt_app_content" className="app-content flex-column-fluid mt-6">
-				<div id="kt_app_content_container" className="app-container">
-
-					<form className="form d-flex flex-column flex-lg-row" id="form-input" encType="multipart/form-data">
-						<Form />
-					</form>
-				</div>
-			</div>
-		</div>
+		{initialValues && (
+			<Form
+				mode="edit"
+				initialValues={initialValues}
+				submitUrl={process.env.REACT_APP_API_BASE_URL + `/awards/${id}`}
+				redirectUrl="/awards"
+				successMessage="Award has been updated successfully"
+			/>
+		)}
     </div>
   );
 }
-
 export default Edit;
