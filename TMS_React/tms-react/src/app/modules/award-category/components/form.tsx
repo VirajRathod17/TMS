@@ -97,7 +97,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
               <div className="card card-flush">
                 <div className="card-header">
                   <div className="card-title">
-                    <h2>{pageTitle}</h2>
+                    <h2>{pageTitle ? pageTitle : ''}</h2>
                   </div>
                 </div>
                 <div className="card-body pt-0">

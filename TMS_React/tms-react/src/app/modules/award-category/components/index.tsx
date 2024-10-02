@@ -6,7 +6,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {Helmet} from 'react-helmet';
-
+import SearchForm from '../../include/searchForm';
 interface AwardCategory {
     id: number;
     name: string;
@@ -19,9 +19,9 @@ function Index() {
     const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
     const pageTitle = 'Manage Award Categories'; // Dynamic page title
-
+    const module = 'award-category';
+    const moduleTitle = 'Award Categories';
     useEffect(() => {
         document.title = pageTitle; 
     }, [pageTitle]); 
@@ -153,7 +153,7 @@ function Index() {
     return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
             <Helmet>
-                <title>{pageTitle}</title>
+                <title>{pageTitle ? pageTitle : ''}</title>
             </Helmet>
             <div className="d-flex flex-column flex-column-fluid">
                 <div id="kt_app_toolbar" className="app-toolbar mb-5">
@@ -163,14 +163,14 @@ function Index() {
                     <div id="kt_app_content_container" className="app-container">
                         <div className="card card-flush mb-5">
                             <div className="card-body pt-6 pb-3">
-                                {/* Card Body Content */}
+                                <SearchForm module={module} moduleTitle={moduleTitle} />
                             </div>
                         </div>
                         <div className="card card-flush mb-5">
                             <div className="card-body pt-5">
                                 <div className="d-flex flex-stack mb-5">
                                     <div className="d-flex align-items-center position-relative my-1">
-                                        <h2 className="mb-0">{pageTitle}</h2>
+                                        <h2 className="mb-0">{pageTitle ? pageTitle : ''}</h2>
                                     </div>
                                     <div className="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
                                     {selectedIds.length === 0 && ( // Conditionally render Add button if no items are selected
@@ -236,7 +236,7 @@ function Index() {
                                                 <td>{category.id}</td>
                                                 <td>{category.name}</td>
                                                 <td>{category.award_id}</td>
-                                                <td>{category.main_sponsored_id}</td>
+                                                <td>{category.main_sponsored_id === 0 ? 'Sponso1' : 'Sponso2'}</td>
                                                 <td>
                                                     <span
                                                         className={`badge badge-${

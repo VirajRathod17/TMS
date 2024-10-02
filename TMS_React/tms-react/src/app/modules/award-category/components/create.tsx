@@ -23,7 +23,7 @@ function Create() {
   return (
       <div className="d-flex flex-column flex-column-fluid">
          <Helmet>
-              <title>{pageTitle}</title>
+              <title>{pageTitle ? pageTitle : ''}</title>
           </Helmet>
         <div id="kt_app_toolbar" className="app-toolbar">
           <div id="kt_app_toolbar_container" className="app-container">
