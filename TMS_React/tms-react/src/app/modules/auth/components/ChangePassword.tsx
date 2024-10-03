@@ -7,16 +7,18 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
+type PasswordFields = 'current_password' | 'new_password' | 'confirm_password';
+
 const ChangePassword = () => {
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState({
+  const [showPassword, setShowPassword] = useState<Record<PasswordFields, boolean>>({
     current_password: false,
     new_password: false,
     confirm_password: false,
   });
 
   // Toggle password visibility
-  const togglePasswordVisibility = (field) => {
+  const togglePasswordVisibility = (field: PasswordFields) => {
     setShowPassword((prevState) => ({
       ...prevState,
       [field]: !prevState[field],
@@ -43,7 +45,6 @@ const ChangePassword = () => {
       setLoading(true);
 
       try {
-        // Call the change password API
         const response = await axios.post(
           `${process.env.REACT_APP_API_BASE_URL}change-password`,
           {
@@ -58,7 +59,6 @@ const ChangePassword = () => {
           }
         );
 
-        // Handle success response
         if (response.data.status === 'success') {
           Swal.fire('Success', response.data.message, 'success');
         } else {
@@ -97,7 +97,7 @@ const ChangePassword = () => {
                     {...formik.getFieldProps('current_password')}
                   />
                   <span
-                    className='position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer'
+                    className='position-absolute top-50 end-0 translate-middle-y me-7 cursor-pointer'
                     onClick={() => togglePasswordVisibility('current_password')}
                   >
                     <FontAwesomeIcon icon={showPassword.current_password ? faEyeSlash : faEye} />
@@ -123,7 +123,7 @@ const ChangePassword = () => {
                     {...formik.getFieldProps('new_password')}
                   />
                   <span
-                    className='position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer'
+                    className='position-absolute top-50 end-0 translate-middle-y me-7 cursor-pointer'
                     onClick={() => togglePasswordVisibility('new_password')}
                   >
                     <FontAwesomeIcon icon={showPassword.new_password ? faEyeSlash : faEye} />
@@ -149,7 +149,7 @@ const ChangePassword = () => {
                     {...formik.getFieldProps('confirm_password')}
                   />
                   <span
-                    className='position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer'
+                    className='position-absolute top-50 end-0 translate-middle-y me-7 cursor-pointer'
                     onClick={() => togglePasswordVisibility('confirm_password')}
                   >
                     <FontAwesomeIcon icon={showPassword.confirm_password ? faEyeSlash : faEye} />
