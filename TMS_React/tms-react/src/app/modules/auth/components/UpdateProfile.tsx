@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { fetchUserProfile } from '../services/userProfileService'; 
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css'; // Import SweetAlert2 CSS
+import 'sweetalert2/dist/sweetalert2.min.css';
 import { toAbsoluteUrl } from '../../../../_metronic/helpers';
 
 const UpdateProfile = () => {
   const [loading, setLoading] = useState(false);
+  // const [loadingProfile, setLoadingProfile] = useState(true); // Loading state for profile data
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [initialValues, setInitialValues] = useState({
     name: '',
@@ -15,39 +17,34 @@ const UpdateProfile = () => {
     image: null,
   });
 
+  // Fetch user profile data on component mount
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const getProfile = async () => {
       try {
-        const token = localStorage.getItem('jwt_token');
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}get-user`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const data = await fetchUserProfile(); // Use the service to fetch profile data
 
         setInitialValues({
-          name: response.data.data.name,
-          email: response.data.data.email,
-          image: response.data.data.image,
+          name: data.name,
+          email: data.email,
+          image: data.image,
         });
 
-        const fullImageUrl = response.data.data.image;
-        setProfileImage(fullImageUrl);
-        console.log('Profile image set to:', fullImageUrl);
+        const fullImageUrl = data.image;
+        setProfileImage(fullImageUrl || toAbsoluteUrl('/media/avatars/blank.png'));
+        // setLoadingProfile(false); // Stop the loading state once data is fetched
       } catch (error) {
         console.error('Error fetching user profile', error);
+        // setLoadingProfile(false);
       }
     };
 
-    fetchUserProfile();
+    getProfile();
   }, []);
 
+  // Formik setup
   const formik = useFormik({
     initialValues: initialValues,
-    enableReinitialize: true,
+    enableReinitialize: true, // Allow reinitializing the form when the initialValues change
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
       email: Yup.string().email('Invalid email format').required('Email is required'),
@@ -74,18 +71,13 @@ const UpdateProfile = () => {
           }
         );
 
-        // Show success alert
         Swal.fire({
           icon: 'success',
           title: 'Profile updated successfully',
           confirmButtonText: 'OK'
         });
-
-        console.log('Profile updated successfully');
       } catch (error) {
         console.error('Error updating profile', error);
-
-        // Show error alert
         Swal.fire({
           icon: 'error',
           title: 'Error updating profile',
@@ -102,9 +94,11 @@ const UpdateProfile = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       formik.setFieldValue('image', file);
-      setProfileImage(URL.createObjectURL(file)); // Preview image
+      setProfileImage(URL.createObjectURL(file));
     }
   };
+
+  
 
   return (
     <div className='card mb-5 mb-xl-10'>

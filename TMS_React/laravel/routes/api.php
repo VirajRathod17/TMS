@@ -36,5 +36,10 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::group(['controller' => 'AwardController'], function () {
             Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('award-delete-multiple-datatable');
         });
+
+        Route::resource('/sponsors', 'SponsorController');
+        // Route::group(['controller' => 'SponsorController'], function () {
+        //     Route::post('sponsor-multiple-delete', 'multipleDelete')->name('sponsor-multiple-delete');
+        // });
     }); 
 });
