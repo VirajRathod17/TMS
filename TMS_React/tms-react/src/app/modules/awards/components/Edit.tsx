@@ -30,7 +30,7 @@ function Edit() {
       );
       if (response.data) {
         setInitialValues(response.data.data);
-        setLoading(false);
+        setLoading(false); 
       }
     };
     fetchAward();
