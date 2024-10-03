@@ -6,15 +6,25 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\AwardCategory;
+use App\Models\Award;
+use Illuminate\Support\Facades\Auth;
 class AwardCategoryController extends Controller
 {
+    /**
+     * Creates a new award category.
+     * 
+     * This endpoint validates the request data, creates a new award category and returns the created award category.
+     * 
+     * @author - Bansi
+     * @param Request $request - The request object containing the name, description, status, award_id and main_sponsored_id
+     * 
+     * @return \Illuminate\Http\Response - A JSON response containing the created award category or an error message.
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:255',
             'description' => 'required',
-            'status' => 'required',
-            'award_id' => 'required',
             'status' => 'required',
             'main_sponsored_id' => 'required',
         ]);
@@ -26,11 +36,13 @@ class AwardCategoryController extends Controller
             return response()->json($this->responseData);
         }
 
+        $admin = Auth::guard('api')->user();
+        $award = Award::find($admin->award_id);
         $awardCategory = new AwardCategory();
         $awardCategory->name = $request->name;
         $awardCategory->description = $request->description;
         $awardCategory->status = $request->status;
-        $awardCategory->award_id = $request->award_id;
+        $awardCategory->award_id = $award->id;
         $awardCategory->main_sponsored_id = $request->main_sponsored_id;
         $awardCategory->save();
 
@@ -43,9 +55,15 @@ class AwardCategoryController extends Controller
 
     public function index()
     {
-        $awardCategories = AwardCategory::all();
+        $admin = Auth::guard('api')->user();
+        $award = Award::find($admin->award_id);
+        $awardCategories = AwardCategory::where('award_id', $admin->award_id)->get();
         foreach($awardCategories as $awardCategory)
         {
+            if($awardCategory->award_id == $award->id)
+            {
+                $awardCategory->award_id = $award->name;
+            }
             if($awardCategory->status == '1')
             {
                 $awardCategory->status = 'Active';
@@ -97,8 +115,6 @@ class AwardCategoryController extends Controller
             'name' => 'required|max:255',
             'description' => 'required',
             'status' => 'required',
-            'award_id' => 'required',
-            'status' => 'required',
             'main_sponsored_id' => 'required',
         ]);
 
@@ -110,12 +126,14 @@ class AwardCategoryController extends Controller
         }
 
         $awardCategory = AwardCategory::find($id);
+        $admin = Auth::guard('api')->user();
+        $award = Award::find($admin->award_id);
         if($awardCategory)
         {
             $awardCategory->name = $request->name;
             $awardCategory->description = $request->description;
             $awardCategory->status = $request->status;
-            $awardCategory->award_id = $request->award_id;
+            $awardCategory->award_id = $award->id;
             $awardCategory->main_sponsored_id = $request->main_sponsored_id;
             $awardCategory->save();
 
