@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // 'admins' => [
+        //     'driver' => 'session',
+        //     'provider' => 'admin',
+        // ],
 
         'api' => [
                 'driver' => 'jwt',
@@ -74,7 +78,6 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Admin::class,
         ],
-
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',

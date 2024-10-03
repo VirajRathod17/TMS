@@ -31,5 +31,10 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::group(['controller' => 'AwardCategoryController'], function () {
             Route::post('award-category-multiple-delete', 'multipleDelete')->name('award-category-multiple-delete');
         });
+
+        Route::resource('/awards', 'AwardController');
+        Route::group(['controller' => 'AwardController'], function () {
+            Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('award-delete-multiple-datatable');
+        });
     }); 
 });
