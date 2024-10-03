@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css'; // Import SweetAlert2 CSS
 import { toAbsoluteUrl } from '../../../../_metronic/helpers';
 
 const UpdateProfile = () => {
@@ -13,7 +15,6 @@ const UpdateProfile = () => {
     image: null,
   });
 
-  // Fetch user profile data on component mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -27,20 +28,15 @@ const UpdateProfile = () => {
           }
         );
 
-        // Set the initial values with fetched user data
         setInitialValues({
           name: response.data.data.name,
           email: response.data.data.email,
           image: response.data.data.image,
         });
 
-        // Set the image preview URL if an image exists
-        if (response.data.data.image) {
-          setProfileImage(`${process.env.REACT_APP_API_BASE_URL}admin/profile/${response.data.data.id}/${response.data.data.image}`);
-        } else {
-          setProfileImage(null); // No image found
-        }
-        console.log(response.data.data.image);
+        const fullImageUrl = response.data.data.image;
+        setProfileImage(fullImageUrl);
+        console.log('Profile image set to:', fullImageUrl);
       } catch (error) {
         console.error('Error fetching user profile', error);
       }
@@ -49,18 +45,15 @@ const UpdateProfile = () => {
     fetchUserProfile();
   }, []);
 
-  // Formik setup for form handling and validation
   const formik = useFormik({
     initialValues: initialValues,
-    enableReinitialize: true, // Allows Formik to update the form when initialValues change
+    enableReinitialize: true,
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
       email: Yup.string().email('Invalid email format').required('Email is required'),
     }),
     onSubmit: async (values) => {
       setLoading(true);
-
-      // Create form data for the API request
       const formData = new FormData();
       formData.append('name', values.name);
       formData.append('email', values.email);
@@ -70,7 +63,7 @@ const UpdateProfile = () => {
 
       try {
         const token = localStorage.getItem('jwt_token');
-        const response = await axios.post(
+        await axios.post(
           `${process.env.REACT_APP_API_BASE_URL}update-profile`,
           formData,
           {
@@ -80,16 +73,31 @@ const UpdateProfile = () => {
             },
           }
         );
-        console.log('Profile updated successfully', response.data);
+
+        // Show success alert
+        Swal.fire({
+          icon: 'success',
+          title: 'Profile updated successfully',
+          confirmButtonText: 'OK'
+        });
+
+        console.log('Profile updated successfully');
       } catch (error) {
         console.error('Error updating profile', error);
+
+        // Show error alert
+        Swal.fire({
+          icon: 'error',
+          title: 'Error updating profile',
+          text: 'There was a problem updating your profile. Please try again.',
+          confirmButtonText: 'OK'
+        });
       } finally {
         setLoading(false);
       }
     },
   });
 
-  // Handle file input change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -112,21 +120,24 @@ const UpdateProfile = () => {
             <div className='row mb-6'>
               <label className='col-lg-4 col-form-label fw-bold fs-6'>Profile Image</label>
               <div className='col-lg-8'>
-                <div
-                  className='image-input image-input-outline'
-                  style={{
-                    backgroundImage: `url(${profileImage || toAbsoluteUrl('/media/avatars/blank.png')})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                  data-kt-image-input='true'
-                >
+                <div className='image-input image-input-outline' data-kt-image-input='true'>
+                  <img
+                    src={profileImage || toAbsoluteUrl('/media/avatars/blank.png')}
+                    alt='Profile'
+                    style={{
+                      width: '150px',
+                      height: '150px',
+                      borderRadius: '50%',
+                      border: '1px solid #e3e6f0',
+                    }}
+                  />
+
                   <input
                     type='file'
                     className='form-control'
                     accept='image/*'
                     onChange={handleImageChange}
-                    style={{ display: 'none' }} // Hide the default file input
+                    style={{ display: 'none' }}
                     id='profileImageInput'
                   />
                   <label htmlFor='profileImageInput' className='image-input-label'>
@@ -154,19 +165,15 @@ const UpdateProfile = () => {
             </div>
 
             <div className='row mb-6'>
-              <label className='col-lg-4 col-form-label required fw-bold fs-6'>Email</label>
+              <label className='col-lg-4 col-form-label fw-bold fs-6'>Email</label>
               <div className='col-lg-8 fv-row'>
                 <input
                   type='email'
                   className='form-control form-control-lg form-control-solid'
                   placeholder='Email'
+                  readOnly
                   {...formik.getFieldProps('email')}
                 />
-                {formik.touched.email && formik.errors.email ? (
-                  <div className='fv-plugins-message-container'>
-                    <div className='fv-help-block'>{formik.errors.email}</div>
-                  </div>
-                ) : null}
               </div>
             </div>
           </div>
