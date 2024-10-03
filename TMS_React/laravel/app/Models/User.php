@@ -41,4 +41,20 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public static function getImage(int $id = 0, string $imgName = "")
+    {
+        $image = '';
+
+        // Check if the ID and image name are provided, and the file exists
+        if ($id > 0 && $imgName !== '' && file_exists(public_path('admin/profile/' . $id . '/' . $imgName))) {
+            // Return the full-size image path
+            $image = asset('admin/profile/' . $id . '/' . $imgName);
+        } else {
+            // Return a default image if the conditions aren't met
+            $image = asset('themes/admin/images/profile-default.png');
+        }
+        return $image;
+    }
+
 }

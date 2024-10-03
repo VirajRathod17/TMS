@@ -5,6 +5,8 @@ import { useAuth } from '../../../../app/modules/auth';
 import { toAbsoluteUrl } from '../../../helpers';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+
 const HeaderUserMenu: FC = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ const HeaderUserMenu: FC = () => {
       if (token) {
         // Make API call to logout endpoint in Laravel
         await axios.post(
-          'http://127.0.0.1:8000/api/logout',
+        `${API_BASE_URL}logout`,
           {}, // No body is needed
           {
             headers: {
@@ -66,14 +68,14 @@ const HeaderUserMenu: FC = () => {
       <div className='separator my-2'></div>
 
       <div className='menu-item px-5'>
-        <Link to={'/crafted/pages/profile'} className='menu-link px-5'>
+        <Link to={'/profile'} className='menu-link px-5'>
           User Profile
         </Link>
       </div>
 
       <div className='menu-item px-5 my-1'>
-        <Link to='/crafted/account/settings' className='menu-link px-5'>
-          Account Settings
+        <Link to='/change-password' className='menu-link px-5'>
+         Change Password
         </Link>
       </div>
 
