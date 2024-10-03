@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import {Helmet} from 'react-helmet';
+import Breadcrumb from '../../include/breadcrumbs';
 
 interface Award {
   id: number;
@@ -17,6 +19,12 @@ function Index() {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedAwards, setSelectedAwards] = useState<number[]>([]);
   const [isSelectAll, setIsSelectAll] = useState(false);
+  const pageTitle = 'Manage Award'; // Dynamic page title
+    const module = 'award';
+    const moduleTitle = 'Award';
+    useEffect(() => {
+        document.title = pageTitle; 
+    }, [pageTitle]); 
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
@@ -44,7 +52,7 @@ function Index() {
       try {
         const token = localStorage.getItem('jwt_token');
         const response = await axios.get(
-          process.env.REACT_APP_API_BASE_URL + '/awards',
+          process.env.REACT_APP_API_BASE_URL + 'awards',
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -76,7 +84,7 @@ function Index() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(process.env.REACT_APP_API_BASE_URL + `/awards/${id}`, {
+          .delete(process.env.REACT_APP_API_BASE_URL + `awards/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -135,14 +143,20 @@ function Index() {
       }
     });
   };
-  
+
+  const breadcrumbs = [{ label: 'Manage Award', url: '' }];
+
   return (
     <>
+    <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
+      <Helmet>
+        <title>{pageTitle ? pageTitle : ''}</title>
+      </Helmet>
     <div className="d-flex flex-column flex-column-fluid">
       <div id="kt_app_toolbar" className="app-toolbar">
-        <div id="kt_app_toolbar_container" className="app-container">
-          {/* <h1>Hello</h1> */}
-        </div>
+        {/* <div id="kt_app_toolbar_container" className="app-container"> */}
+          <Breadcrumb breadcrumbs={breadcrumbs} />
+        {/* </div> */}
       </div>
       <div id="kt_app_content" className="app-content flex-column-fluid">
         <div id="kt_app_content_container" className="app-container">
@@ -216,6 +230,7 @@ function Index() {
         </div>
       </div>
     </div>
+  </div>
     </>
   );
 }

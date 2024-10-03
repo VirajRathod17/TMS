@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFormik } from 'formik';
+import { useFormik, FormikErrors } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -18,9 +18,11 @@ interface FormProps {
   submitUrl: string;
   redirectUrl: string;
   successMessage: string;
+  pageTitle: string;
+
 }
 
-const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage }) => {
+const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -100,7 +102,8 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
             <div className="card card-flush">
               <div className="card-header">
                 <div className="card-title">
-                  <h2>{mode === 'create' ? 'Add Award' : 'Edit Award'}</h2>
+                    <h2>{pageTitle ? pageTitle : ''}</h2>
+                    {/* <h2>{mode === 'create' ? 'Add Award' : 'Edit Award'}</h2> */}
                 </div>
               </div>
               <div className="card-body pt-0">
