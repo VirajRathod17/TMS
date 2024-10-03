@@ -29,13 +29,14 @@ const MasterLayout = () => {
           <AsideDefault />
           <div className='wrapper d-flex flex-column flex-row-fluid' id='kt_wrapper'>
             <HeaderWrapper />
-            <div id='kt_content' className='content d-flex flex-column flex-column-fluid'>
+
+            {/* <div id='kt_content' className='content d-flex flex-column flex-column-fluid'> */}
               <div className='post d-flex flex-column-fluid' id='kt_post'>
                 <Content>
                   <Outlet />
                 </Content>
               </div>
-            </div>
+            {/* </div> */}
             <Footer />
           </div>
         </div>

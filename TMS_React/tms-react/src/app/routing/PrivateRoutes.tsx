@@ -5,6 +5,9 @@ import TopBarProgress from 'react-topbar-progress-indicator'
 import {DashboardWrapper} from '../pages/dashboard/DashboardWrapper'
 import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
+import { dynamicRoutes } from './dynamicRoutes';
+// import Create from '../modules/awards/components/create'
+
 import UpdateProfile from '../modules/auth/components/UpdateProfile'
 import ChangePassword from '../modules/auth/components/ChangePassword'
 
@@ -14,6 +17,8 @@ const isTokenExpired = () => {
 };
 
 const PrivateRoutes = () => {
+  const Award_Index = lazy(() => import('../modules/awards/components/index'))
+  const Award_Categories_Index = lazy(() => import('../modules/award-category/components/index'));
 
   if (isTokenExpired()) {
     // Redirect to login if the token is expired
@@ -23,9 +28,20 @@ const PrivateRoutes = () => {
   return (
     <Routes>
       <Route element={<MasterLayout />}>
-        {/* Redirect to Dashboard after success login/registartion */}
+        {/* {/ Redirect to Dashboard after success login/registartion /} */}
         <Route path='login/*' element={<Navigate to='/dashboard' />} />
         <Route path='dashboard' element={<DashboardWrapper />} />
+        {dynamicRoutes.map(({ path, component: Component }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <SuspensedView>
+                <Component />
+              </SuspensedView>
+            }
+          />
+        ))}
         <Route path='/profile' element={<UpdateProfile/>} />
         <Route path='/change-password' element={<ChangePassword/>} />
 

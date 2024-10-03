@@ -34,14 +34,6 @@ class Admin extends Authenticatable implements JWTSubject // Extending Authentic
         return [];
     }
 
-    /**
-     * Override the method to use 'id' as the primary key.
-     */
-    // public function getAuthIdentifierName()
-    // {
-    //     return 'id'; // Assuming 'id' is the primary key
-    // }
-
     public static function getImage(int $id = 0, string $imgName = "")
     {
         // Initialize image path
@@ -63,5 +55,9 @@ class Admin extends Authenticatable implements JWTSubject // Extending Authentic
     }
     
     
+    public function getAuthIdentifierName()
+    {
+        return 'id'; // Assuming 'id' is the primary key
+    }
 
 }
