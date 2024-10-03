@@ -207,7 +207,7 @@ function Index() {
                                                     <input
                                                         className="form-check-input"
                                                         type="checkbox"
-                                                        checked={selectedIds.length === awardCategories.length}
+                                                        // checked={selectedIds.length === awardCategories.length}
                                                         onChange={handleSelectAll}
                                                     />
                                                 </div>
@@ -225,12 +225,12 @@ function Index() {
                                             <tr key={category.id}>
                                                 <td>
                                                     <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="checkbox"
-                                                            checked={selectedIds.includes(category.id)}
-                                                            onChange={() => handleSelect(category.id)}
-                                                        />
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        checked={selectedIds.includes(category.id)} // Remains the same
+                                                        onChange={() => handleSelect(category.id)}
+                                                    />
                                                     </div>
                                                 </td>
                                                 <td>{category.id}</td>
