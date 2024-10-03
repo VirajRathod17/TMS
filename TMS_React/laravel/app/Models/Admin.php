@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable; // Change this from Model to Authenticatable
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-class Admin extends Model implements JWTSubject
+
+class Admin extends Authenticatable implements JWTSubject // Extending Authenticatable instead of Model
 {
     use HasFactory;
-
     protected $table = 'tbl_admin';
+
     protected $fillable = [
         'name',
         'email',
@@ -32,4 +33,10 @@ class Admin extends Model implements JWTSubject
     {
         return [];
     }
+
+    public function getAuthIdentifierName()
+    {
+        return 'id'; // Assuming 'id' is the primary key
+    }
+
 }

@@ -1,0 +1,34 @@
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7); /* Adjust the transparency */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999; /* Ensure it appears above other content */
+  }
+
+  
+  /* Animation for loader */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+
+
+  /* Bread Crumb css */
+
+  .breadcrumb {
+    background: #fff !important;
+    /* border: 1px solid #F4E6C3 !important; */
+    padding: 12px !important;
+    border-radius: 0.625rem !important;
+}
+
+.breadcrumb a {
+    color: black !important;
+}
