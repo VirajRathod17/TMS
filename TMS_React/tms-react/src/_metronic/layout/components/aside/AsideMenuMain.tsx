@@ -13,7 +13,7 @@ export function AsideMenuMain() {
         to='/dashboard'
         icon='/media/icons/duotune/art/art002.svg'
         title='Dashboard'
-        fontIcon='bi-app-indicator'
+        fontIcon='bi-app-indicator' 
       />
       <AsideMenuItem
         to='/awards'
@@ -24,6 +24,12 @@ export function AsideMenuMain() {
         to='/award-category'
         icon='/media/icons/duotune/art/art002.svg'
         title='Award Category'
+        fontIcon='bi-app-indicator'
+      />
+      <AsideMenuItem
+        to='/supporting-association'
+        icon='/media/icons/duotune/art/art002.svg'
+        title='Supporting Association'
         fontIcon='bi-app-indicator'
       />
     </>

@@ -26,7 +26,6 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::post('/update-profile', [LoginController::class, 'updateProfile'])->name('updateProfile');
         Route::any('/get-user', [LoginController::class, 'getProfile'])->name('get-user'); // Ensure this is correct
         
-        
         Route::resource('award-category', 'AwardCategoryController');
         Route::group(['controller' => 'AwardCategoryController'], function () {
             Route::post('award-category-multiple-delete', 'multipleDelete')->name('award-category-multiple-delete');
@@ -34,7 +33,12 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
 
         Route::resource('/awards', 'AwardController');
         Route::group(['controller' => 'AwardController'], function () {
-            Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('award-delete-multiple-datatable');
+            Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('awards-delete-multiple');
+        });
+        
+        Route::resource('/supporting-association', 'SupportingAssociationController');
+        Route::group(['controller' => 'SupportingAssociationController'], function () {
+            Route::delete('/supporting-association-delete-multiple', 'deleteMultipleSupportingAssociationsById')->name('supporting-association-delete-multiple');
         });
     }); 
 });

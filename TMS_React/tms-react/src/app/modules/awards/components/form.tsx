@@ -103,7 +103,6 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
               <div className="card-header">
                 <div className="card-title">
                     <h2>{pageTitle ? pageTitle : ''}</h2>
-                    {/* <h2>{mode === 'create' ? 'Add Award' : 'Edit Award'}</h2> */}
                 </div>
               </div>
               <div className="card-body pt-0">

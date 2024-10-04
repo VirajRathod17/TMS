@@ -10,26 +10,26 @@ import Breadcrumb from '../../include/breadcrumbs';
 import Pagination from './pagination';
 import SearchForm from '../../include/searchForm';
 
-interface Award {
+interface SupportingAssociation {
   id: number;
   name: string;
-  year: string;
-  location: string;
+//   year: string;
+//   status: string;
   created_at: string;
 }
 
 const Index: React.FC = () => {
-  const [awards, setAwards] = useState<Award[]>([]);
+  const [supportingassociations, setSupportingAssociation] = useState<SupportingAssociation[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedAwards, setSelectedAwards] = useState<number[]>([]);
+  const [selectedsupportingassociations, setSelectedSupportingAssociations] = useState<number[]>([]);
   const [isSelectAll, setIsSelectAll] = useState(false);
-  const [paginatedAwards, setPaginatedAwards] = useState<Award[]>([]);
+  const [paginatedAwards, setPaginatedAwards] = useState<SupportingAssociation[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const pageTitle = 'Manage Award';
-  const module = 'awards';
-  const moduleTitle = 'Award';
+  const pageTitle = 'Manage Supporting Association';
+  const module = 'supporting-association';
+  const moduleTitle = 'Supporting Association';
 
   useEffect(() => {
     document.title = pageTitle;
@@ -37,11 +37,11 @@ const Index: React.FC = () => {
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
-    const awardId = parseInt(value, 10);
+    const supportingassociationId = parseInt(value, 10);
     if (checked) {
-      setSelectedAwards([...selectedAwards, awardId]);
+      setSelectedSupportingAssociations([...selectedsupportingassociations, supportingassociationId]);
     } else {
-      setSelectedAwards(selectedAwards.filter((id) => id !== awardId));
+        setSelectedSupportingAssociations(selectedsupportingassociations.filter((id) => id !== supportingassociationId));
     }
   };
 
@@ -49,10 +49,10 @@ const Index: React.FC = () => {
     const checked = e.target.checked;
     setIsSelectAll(checked);
     if (checked) {
-      const allAwardIds = awards.map((award) => award.id);
-      setSelectedAwards(allAwardIds);
+      const allsupportingassociationIds = supportingassociations.map((supportingassociation) => supportingassociation.id);
+      setSelectedSupportingAssociations(allsupportingassociationIds);
     } else {
-      setSelectedAwards([]);
+        setSelectedSupportingAssociations([]);
     }
   };
 
@@ -66,34 +66,34 @@ const Index: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchAwards = async () => {
+    const fetchSupportingAssociations = async () => {
       try {
         const token = localStorage.getItem('jwt_token');
         const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}awards`,
+          `${process.env.REACT_APP_API_BASE_URL}supporting-association`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-        setAwards(response.data.data);
+        setSupportingAssociation(response.data.data);
       } catch (error) {
-        console.error('Error fetching Awards:', error);
+        console.error('Error fetching Supporting Association:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAwards();
+    fetchSupportingAssociations();
   }, []);
 
   useEffect(() => {
-    setTotalPages(Math.ceil(awards.length / itemsPerPage));
+    setTotalPages(Math.ceil(supportingassociations.length / itemsPerPage));
     setCurrentPage(1);
-  }, [awards, itemsPerPage]);
+  }, [supportingassociations, itemsPerPage]);
 
-  const currentAwards = awards.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentSupportingAssociations = supportingassociations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -104,11 +104,11 @@ const Index: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const deleteAward = (id: number) => {
+  const deleteSupportingAssociation = (id: number) => {
     const token = localStorage.getItem('jwt_token');
     Swal.fire({
       title: 'Are you sure?',
-      text: "Do you really want to delete this Award?",
+      text: "Do you want to delete this Supporting Association?",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -118,33 +118,33 @@ const Index: React.FC = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .delete(`${process.env.REACT_APP_API_BASE_URL}awards/${id}`, {
+          .delete(`${process.env.REACT_APP_API_BASE_URL}supporting-association/${id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           })
           .then((response) => {
             Swal.fire('Deleted!', response.data.message, 'success');
-            setAwards((prevAwards) => prevAwards.filter((award) => award.id !== id));
+            setSupportingAssociation((prevSupportingAssociations) => prevSupportingAssociations.filter((supportingassociation) => supportingassociation.id !== id));
           })
           .catch((error) => {
-            console.error('Error deleting Award:', error);
+            console.error('Error deleting Supporting Association:', error);
           });
       } else {
-        Swal.fire('Cancelled', 'Award was not deleted', 'error');
+        Swal.fire('Cancelled', 'Supporting Association was not deleted', 'error');
       }
     });
   };
 
   const deleteMultiple = () => {
-    if (selectedAwards.length === 0) {
-      Swal.fire('No awards selected', 'Please select awards to delete.', 'warning');
+    if (selectedsupportingassociations.length === 0) {
+      Swal.fire('No Supporting Association selected', 'Please select Supporting Association to delete.', 'warning');
       return;
     }
 
     Swal.fire({
       title: 'Are you sure?',
-      text: `You are about to delete selected awards.`,
+      text: `You are about to delete selected Supporting Association.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -159,37 +159,37 @@ const Index: React.FC = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-            data: { ids: selectedAwards },
+            data: { ids: selectedsupportingassociations },
           })
           .then((response) => {
             Swal.fire('Deleted!', response.data.message, 'success');
-            const updatedAwards = awards.filter(
-              (award) => !selectedAwards.includes(award.id)
+            const updatedSupportingAssociations = supportingassociations.filter(
+              (award) => !selectedsupportingassociations.includes(award.id)
             );
-            setAwards(updatedAwards);
-            setSelectedAwards([]);
+            setSupportingAssociation(updatedSupportingAssociations);
+            setSelectedSupportingAssociations([]);
             setIsSelectAll(false);
           })
           .catch((error) => {
-            console.error('Error deleting awards:', error);
-            Swal.fire('Error!', 'There was an error deleting the awards.', 'error');
+            console.error('Error deleting Supporting Association:', error);
+            Swal.fire('Error!', 'There was an error deleting the Supporting Association.', 'error');
           });
       }
     });
   };
 
-  const breadcrumbs = [{ label: 'Manage Award', url: '' }];
+  const breadcrumbs = [{ label: 'Manage Supporting Association', url: '' }];
 
   const columns = [
     {
       name: <input className="form-check-input" type="checkbox" checked={isSelectAll} onChange={handleSelectAllChange} />,
-      cell: (row: Award) => (
+      cell: (row: SupportingAssociation) => (
         <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
           <input
             className="form-check-input"
             type="checkbox"
             value={row.id.toString()}
-            checked={selectedAwards.includes(row.id)}
+            checked={selectedsupportingassociations.includes(row.id)}
             onChange={handleCheckboxChange}
           />
         </div>
@@ -202,36 +202,36 @@ const Index: React.FC = () => {
     },
     {
       name: 'ID',
-      selector: (row: Award) => row.id,
+      selector: (row: SupportingAssociation) => row.id,
       sortable: true,
       width: '80px',
     },
     {
       name: 'Award Date',
-      selector: (row: Award) => formatDate(row.created_at),
+      selector: (row: SupportingAssociation) => formatDate(row.created_at),
       sortable: true,
       width: '150px',
     },
     {
       name: 'Name',
-      selector: (row: Award) => row.name,
+      selector: (row: SupportingAssociation) => row.name,
       sortable: true,
       width: '200px',
     },
-    {
-      name: 'Award Year',
-      selector: (row: Award) => row.year,
-      sortable: true,
-      width: '200px',
-    },
+    // {
+    //   name: 'Award Year',
+    //   selector: (row: SupportingAssociation) => row.year,
+    //   sortable: true,
+    //   width: '200px',
+    // },
     {
       name: 'Action',
-      cell: (row: Award) => (
+      cell: (row: SupportingAssociation) => (
         <>
-          <Link to={`/awards/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
+          <Link to={`/supporting-association/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
             <i className="fas fa-edit"></i>
           </Link>
-          <button onClick={() => deleteAward(row.id)} className="btn-danger btn btn-sm btn-icon btn-light">
+          <button onClick={() => deleteSupportingAssociation(row.id)} className="btn-danger btn btn-sm btn-icon btn-light">
             <i className="fas fa-trash"></i>
           </button>
         </>
@@ -294,14 +294,14 @@ const Index: React.FC = () => {
                 <div className="card-body pt-5">
                   <div className="d-flex justify-content-between align-items-center mb-5">
                     <h2 className="mb-0">{pageTitle}</h2>
-                    {selectedAwards.length === 0 ? (
-                      <Link to="/awards/create" className="btn btn-primary">
+                    {selectedsupportingassociations.length === 0 ? (
+                      <Link to="/supporting-association/create" className="btn btn-primary">
                         Add
                       </Link>
                     ) : (
                       <div className="d-flex justify-content-end align-items-center">
                         <div className="fw-bold me-5">
-                          <span className="me-2">{selectedAwards.length}</span> Selected
+                          <span className="me-2">{selectedsupportingassociations.length}</span> Selected
                         </div>
                         <button type="button" className="btn btn-primary" onClick={deleteMultiple}>
                           Remove Selected
@@ -315,10 +315,10 @@ const Index: React.FC = () => {
                     <>
                       <DataTable
                         columns={columns}
-                        data={currentAwards}
+                        data={currentSupportingAssociations}
                         customStyles={customStyles}
                         pagination={false}
-                        noDataComponent="No awards found"
+                        noDataComponent="No Supporting Association found"
                         defaultSortFieldId="id"
                         defaultSortAsc={false}
                       />
