@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet';
 import DataTable from 'react-data-table-component';
 import Breadcrumb from '../../include/breadcrumbs';
 import Pagination from './pagination';
+import SearchForm from '../../include/searchForm';
 
 interface Award {
   id: number;
@@ -25,6 +26,7 @@ const Index: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const pageTitle = 'Manage Award';
+  const module = 'awards';
   const moduleTitle = 'Award';
 
   useEffect(() => {
@@ -268,14 +270,14 @@ const Index: React.FC = () => {
           <title>{pageTitle}</title>
         </Helmet>
         <div className="d-flex flex-column flex-column-fluid">
-          <div id="kt_app_toolbar" className="app-toolbar">
+          <div id="kt_app_toolbar" className="app-toolbar mb-5">
             <Breadcrumb breadcrumbs={breadcrumbs} />
           </div>
           <div id="kt_app_content" className="app-content flex-column-fluid">
             <div id="kt_app_content_container" className="app-container">
               <div className="card card-flush mb-5">
                 <div className="card-body pt-6">
-                  {/* <SearchForm /> */}
+                  <SearchForm module={module} moduleTitle={moduleTitle} />
                 </div>
               </div>
               <div className="card card-flush mb-5">
@@ -284,7 +286,7 @@ const Index: React.FC = () => {
                     <h2 className="mb-0">{pageTitle}</h2>
                     {selectedAwards.length === 0 ? (
                       <Link to="/awards/create" className="btn btn-primary">
-                        Add {moduleTitle}
+                        Add
                       </Link>
                     ) : (
                       <div className="d-flex justify-content-end align-items-center">
