@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import {Helmet} from 'react-helmet';
 import SearchForm from '../../include/searchForm';
 import DataTable from 'react-data-table-component';
+import Pagination from '../../include/pagination';
 interface AwardCategory {
     id: number;
     name: string;
@@ -20,7 +21,11 @@ function Index() {
     const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const pageTitle = 'Manage Award Categories'; // Dynamic page title
+    const [paginatedAwardCategories, setPaginatedAwardCategories] = useState<AwardCategory[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageTitle = 'Manage Award Categories'; 
     const module = 'award-category';
     const moduleTitle = 'Award Categories';
     useEffect(() => {
@@ -49,6 +54,28 @@ function Index() {
 
         fetchAwardCategories();
     }, []);
+
+
+
+    useEffect(() => {
+      const paginateAwardCategories = () => {
+        setLoading(true);
+        const paginatedData = awardCategories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    
+        // If the current page exceeds the available pages, go back to the last page
+        if (paginatedData.length === 0 && currentPage > 1) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          setPaginatedAwardCategories(paginatedData);
+        }
+        
+        setTotalPages(Math.ceil(awardCategories.length / itemsPerPage));
+        setLoading(false);
+      };
+    
+      paginateAwardCategories();
+    }, [currentPage, itemsPerPage, awardCategories]);
+    
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -243,6 +270,7 @@ function Index() {
             color: '#212529',
           },
         },
+        
       };
       
       return (
@@ -274,26 +302,35 @@ function Index() {
                           </Link>
                         )}
                         {selectedIds.length > 0 && (
-                          <div className="d-flex justify-content-end align-items-center">
-                            <button type="button" className="btn btn-danger me-3" onClick={handleRemoveSelected}>
-                              Remove Selected
-                            </button>
-                            <button type="button" className="btn btn-light" onClick={() => setSelectedIds([])}>
-                              Cancel
-                            </button>
-                          </div>
+                            
+                            <div className="d-flex justify-content-end align-items-center">
+                              <div className="fw-bold me-5">
+                                <span className="me-2">{selectedIds.length}</span> Selected
+                              </div>
+                              <button type="button" className="btn btn-danger me-3" onClick={handleRemoveSelected}>
+                                Remove Selected
+                              </button>
+                            </div>
                         )}
                       </div>
                     </div>
                     <DataTable
                       columns={columns}
-                      data={awardCategories}
+                      data={paginatedAwardCategories}
                       customStyles={customStyles}
-                      pagination
+                      pagination = {false}
                       striped
                       highlightOnHover
                       pointerOnHover
                       persistTableHead
+                    />
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                      onItemsPerPageChange={setItemsPerPage}
+                      itemsPerPage={itemsPerPage}
+                      isLoading={loading}
                     />
                   </div>
                 </div>
