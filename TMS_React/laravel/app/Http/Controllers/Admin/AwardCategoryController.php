@@ -38,6 +38,9 @@ class AwardCategoryController extends Controller
 
         $admin = Auth::guard('api')->user();
         $award = Award::find($admin->award_id);
+        
+        $credetials = json_encode($request->question);
+        // dd($credetials);
         $awardCategory = new AwardCategory();
         $awardCategory->name = $request->name;
         $awardCategory->description = $request->description;
@@ -72,6 +75,16 @@ class AwardCategoryController extends Controller
             {
                 $awardCategory->status = 'Inactive';
             }
+
+            if($awardCategory->main_sponsored_id == '0')
+            {
+                $awardCategory->main_sponsored_id = 'Sponsor-1';
+            }
+            else
+            {
+                $awardCategory->main_sponsored_id = 'Sponsor-2';
+            }
+            $awardCategory->date = date('d-m-Y', strtotime($awardCategory->created_at));
         }
         if(isset($awardCategories))
         {

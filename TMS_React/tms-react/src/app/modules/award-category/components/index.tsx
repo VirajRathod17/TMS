@@ -9,8 +9,10 @@ import {Helmet} from 'react-helmet';
 import SearchForm from '../../include/searchForm';
 import DataTable from 'react-data-table-component';
 import Pagination from '../../include/pagination';
+
 interface AwardCategory {
     id: number;
+    date: string;
     name: string;
     award_id: number;
     main_sponsored_id: number; 
@@ -18,16 +20,19 @@ interface AwardCategory {
 }
 
 function Index() {
-    const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [paginatedAwardCategories, setPaginatedAwardCategories] = useState<AwardCategory[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [totalPages, setTotalPages] = useState(1);
-    const pageTitle = 'Manage Award Categories'; 
-    const module = 'award-category';
-    const moduleTitle = 'Award Categories';
+  const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchName, setSearchName] = useState<string>('');
+  const [searchStatus, setSearchStatus] = useState<string>('');
+  const [filteredAwardCategories, setFilteredAwardCategories] = useState<AwardCategory[]>([]);
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const pageTitle = 'Manage Award Categories'; 
+  const module = 'award-category';
+  const moduleTitle = 'Award Categories';
     useEffect(() => {
         document.title = pageTitle; 
     }, [pageTitle]); 
@@ -57,24 +62,37 @@ function Index() {
 
 
 
-    useEffect(() => {
-      const paginateAwardCategories = () => {
-        setLoading(true);
-        const paginatedData = awardCategories.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+       // Filter the data based on search query
+       useEffect(() => {
+        const filterData = () => {
+          const filtered = awardCategories.filter((category) => {
+            const matchesName = category.name.toLowerCase().includes(searchName.toLowerCase());
+            const matchesStatus = 
+              (searchStatus === 'Active' && category.status.toLowerCase() === 'active') ||
+              (searchStatus === 'Inactive' && category.status.toLowerCase() === 'inactive') ||
+              searchStatus === '';
+      
+            const matchesDateRange = (!fromDate || new Date(category.date) >= new Date(fromDate)) &&
+                                     (!toDate || new Date(category.date) <= new Date(toDate));
+      
+            return matchesName && matchesStatus && matchesDateRange;
+          });
+      
+          setFilteredAwardCategories(filtered);
+        };
+      
+        filterData();
+      }, [searchName, searchStatus, fromDate, toDate, awardCategories]);
+      
     
-        // If the current page exceeds the available pages, go back to the last page
-        if (paginatedData.length === 0 && currentPage > 1) {
-          setCurrentPage(currentPage - 1);
-        } else {
-          setPaginatedAwardCategories(paginatedData);
-        }
-        
-        setTotalPages(Math.ceil(awardCategories.length / itemsPerPage));
-        setLoading(false);
-      };
-    
-      paginateAwardCategories();
-    }, [currentPage, itemsPerPage, awardCategories]);
+
+    // Paginate the filtered data
+    const paginatedData = filteredAwardCategories.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const totalPages = Math.ceil(filteredAwardCategories.length / itemsPerPage);
     
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,11 +191,6 @@ function Index() {
     };
 
     const breadcrumbs = [{ label: 'Manage Award Categories', url: '' }];
-
-    if (loading) {
-        return <Loader />;
-    }
-
     const columns = [
         {
           name: <input className="form-check-input" type="checkbox" checked={selectedIds.length === awardCategories.length} onChange={handleSelectAll} />,
@@ -205,6 +218,12 @@ function Index() {
           width: '80px',
         },
         {
+          name: 'Date',
+          selector: (row: AwardCategory) => row.date,
+          sortable: true,
+          width: '200px',
+        },
+        {
           name: 'Name',
           selector: (row: AwardCategory) => row.name,
           sortable: true,
@@ -226,13 +245,13 @@ function Index() {
           name: 'Status',
           selector: (row: AwardCategory) => row.status,
           sortable: true,
-          width: '150px',
+          width: '250px',
         },
         {
           name: 'Action',
           cell: (row: AwardCategory) => (
             <>
-              <div style={{ textAlign: 'right' }}>
+              <div className="text-end">
                 <Link to={`/award-category/edit/${row.id}`} className="btn btn-sm btn-light me-2">
                   Edit
                 </Link>
@@ -242,10 +261,15 @@ function Index() {
               </div>
             </>
           ),
+          style: {
+              display: 'flex',
+              justifyContent: 'flex-end',
+          },
         },
       ];
       
       const customStyles = {
+        
         rows: {
           style: {
             minHeight: '72px',
@@ -273,6 +297,20 @@ function Index() {
         
       };
       
+      if (loading) {
+          return <Loader />;
+      }
+
+      // Updated handleSearch function to match the expected structure
+      const handleSearch = ({ name, awardCategoryStatus, from_date, to_date }: 
+        { name: string; awardCategoryStatus: string, from_date: string, to_date: string }) => {
+        setSearchName(name);
+        setSearchStatus(awardCategoryStatus);
+        setFromDate(from_date); // New state for date filtering
+        setToDate(to_date);     // New state for date filtering
+      };
+      
+    
       return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
           <Helmet>
@@ -286,7 +324,8 @@ function Index() {
               <div id="kt_app_content_container" className="app-container">
                 <div className="card card-flush mb-5">
                   <div className="card-body pt-6 pb-3">
-                    <SearchForm module={module} moduleTitle={moduleTitle} />
+                  <SearchForm  module={module} 
+                      moduleTitle={moduleTitle} onSearch={handleSearch} />
                   </div>
                 </div>
                 <div className="card card-flush mb-5">
@@ -315,23 +354,21 @@ function Index() {
                       </div>
                     </div>
                     <DataTable
-                      columns={columns}
-                      data={paginatedAwardCategories}
-                      customStyles={customStyles}
-                      pagination = {false}
-                      striped
-                      highlightOnHover
-                      pointerOnHover
-                      persistTableHead
+                        columns={columns}
+                        data={paginatedData}
+                        customStyles={customStyles}
+                        pagination={false}
+                        noDataComponent="No Award Categories found"
                     />
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={setCurrentPage}
-                      onItemsPerPageChange={setItemsPerPage}
-                      itemsPerPage={itemsPerPage}
-                      isLoading={loading}
-                    />
+                    {!loading && (
+                          <Pagination
+                              totalPages={totalPages}
+                              currentPage={currentPage}
+                              onPageChange={setCurrentPage}
+                              itemsPerPage={itemsPerPage}
+                              onItemsPerPageChange={setItemsPerPage}
+                          />
+                      )}
                   </div>
                 </div>
               </div>
