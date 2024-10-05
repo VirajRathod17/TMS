@@ -184,7 +184,7 @@ class LoginController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'image' => $user->image ? $imagePath . $user->image : null,
+            'image' => $user->image,
             'award_id' => $user->award_id,
         ];
         
