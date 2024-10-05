@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('password')->nullable();
             $table->string('image')->nullable();
+            $table->unsignedBigInteger('award_id')->nullable();
             $table->timestamps();
         });
     }

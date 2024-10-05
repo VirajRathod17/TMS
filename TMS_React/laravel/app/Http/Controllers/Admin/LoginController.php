@@ -14,6 +14,16 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
 
+    /**
+     * Logs in an admin user and returns a JWT token.
+     * 
+     * This endpoint validates the email and password of the admin user and returns a JWT token if the credentials are valid.
+     * 
+     * @author - Bansi,Isha
+     * @param Request $request - The request object containing the email and password.
+     * 
+     * @return \Illuminate\Http\Response - A JSON response containing the JWT token or an error message.
+     */
     public function login(Request $request)
     {
          // Validate request data
@@ -174,7 +184,8 @@ class LoginController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'image' => $user->image,
+            'image' => $user->image ? $imagePath . $user->image : null,
+            'award_id' => $user->award_id,
         ];
         
         return response()->json($this->responseData);
@@ -229,5 +240,24 @@ class LoginController extends Controller
         }
     }
 
+
+    public function changeAwardYear(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if ($user) {
+            $user->award_id = $request->award_id;
+            $user->save();
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = 'Award year changed successfully.';
+            $this->responseData['data'] = []; 
+            return response()->json($this->responseData);
+        }else {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = 'User not found.';
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData, 404);
+        }
+    }
 
 }

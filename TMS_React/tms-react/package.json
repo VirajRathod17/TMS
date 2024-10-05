@@ -2,7 +2,7 @@
   "name": "demo1",
   "version": "8.1.2",
   "private": true,
-  "homepage": "/metronic8/react/demo1",
+  "homepage": "https://tmsbackend.ngtdev.xyz",
   "dependencies": {
     "@formatjs/intl-pluralrules": "4.3.3",
     "@formatjs/intl-relativetimeformat": "10.0.1",
@@ -30,6 +30,7 @@
     "react-bootstrap": "2.5.0-beta.1",
     "react-copy-to-clipboard": "5.1.0",
     "react-data-table-component": "^7.6.2",
+    "react-datepicker": "^7.4.0",
     "react-dom": "18.0.0",
     "react-flatpickr": "^3.10.13",
     "react-helmet": "^6.1.0",

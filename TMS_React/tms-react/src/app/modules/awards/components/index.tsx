@@ -4,19 +4,11 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import {Helmet} from 'react-helmet';
 import Breadcrumb from '../../include/breadcrumbs';
-
-interface Award {
-  id: number;
-  name: string;
-  year: string;
-  location: string;
-  award_date: string;
-}
+import useFetchAwards from './fetchAwards';
 
 function Index() {
 
-  const [awards, setAwards] = useState<Award[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { awards, setAwards, loading, setLoading } = useFetchAwards(); 
   const [selectedAwards, setSelectedAwards] = useState<number[]>([]);
   const [isSelectAll, setIsSelectAll] = useState(false);
   const pageTitle = 'Manage Award'; // Dynamic page title
@@ -47,28 +39,6 @@ function Index() {
     }
   };
 
-  useEffect(() => {
-    const fetchAward = async () => {
-      try {
-        const token = localStorage.getItem('jwt_token');
-        const response = await axios.get(
-          process.env.REACT_APP_API_BASE_URL + 'awards',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setAwards(response.data.data);
-      } catch (error) {
-        console.error('Error fetching Award:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAward();
-  }, []);
 
   const deleteAward = (id: number) => {
     const token = localStorage.getItem('jwt_token');

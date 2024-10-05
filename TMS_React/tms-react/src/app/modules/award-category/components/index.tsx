@@ -7,8 +7,12 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {Helmet} from 'react-helmet';
 import SearchForm from '../../include/searchForm';
+import DataTable from 'react-data-table-component';
+import Pagination from '../../include/pagination';
+
 interface AwardCategory {
     id: number;
+    date: string;
     name: string;
     award_id: number;
     main_sponsored_id: number; 
@@ -16,12 +20,19 @@ interface AwardCategory {
 }
 
 function Index() {
-    const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const pageTitle = 'Manage Award Categories'; // Dynamic page title
-    const module = 'award-category';
-    const moduleTitle = 'Award Categories';
+  const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchName, setSearchName] = useState<string>('');
+  const [searchStatus, setSearchStatus] = useState<string>('');
+  const [filteredAwardCategories, setFilteredAwardCategories] = useState<AwardCategory[]>([]);
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const pageTitle = 'Manage Award Categories'; 
+  const module = 'award-category';
+  const moduleTitle = 'Award Categories';
     useEffect(() => {
         document.title = pageTitle; 
     }, [pageTitle]); 
@@ -48,6 +59,41 @@ function Index() {
 
         fetchAwardCategories();
     }, []);
+
+
+
+       // Filter the data based on search query
+       useEffect(() => {
+        const filterData = () => {
+          const filtered = awardCategories.filter((category) => {
+            const matchesName = category.name.toLowerCase().includes(searchName.toLowerCase());
+            const matchesStatus = 
+              (searchStatus === 'Active' && category.status.toLowerCase() === 'active') ||
+              (searchStatus === 'Inactive' && category.status.toLowerCase() === 'inactive') ||
+              searchStatus === '';
+      
+            const matchesDateRange = (!fromDate || new Date(category.date) >= new Date(fromDate)) &&
+                                     (!toDate || new Date(category.date) <= new Date(toDate));
+      
+            return matchesName && matchesStatus && matchesDateRange;
+          });
+      
+          setFilteredAwardCategories(filtered);
+        };
+      
+        filterData();
+      }, [searchName, searchStatus, fromDate, toDate, awardCategories]);
+      
+    
+
+    // Paginate the filtered data
+    const paginatedData = filteredAwardCategories.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const totalPages = Math.ceil(filteredAwardCategories.length / itemsPerPage);
+    
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -145,129 +191,191 @@ function Index() {
     };
 
     const breadcrumbs = [{ label: 'Manage Award Categories', url: '' }];
-
-    if (loading) {
-        return <Loader />;
-    }
-
-    return (
-        <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
-            <Helmet>
-                <title>{pageTitle ? pageTitle : ''}</title>
-            </Helmet>
-            <div className="d-flex flex-column flex-column-fluid">
-                <div id="kt_app_toolbar" className="app-toolbar mb-5">
-                    <Breadcrumb breadcrumbs={breadcrumbs} />
-                </div>
-                <div id="kt_app_content" className="app-content flex-column-fluid">
-                    <div id="kt_app_content_container" className="app-container">
-                        <div className="card card-flush mb-5">
-                            <div className="card-body pt-6 pb-3">
-                                <SearchForm module={module} moduleTitle={moduleTitle} />
-                            </div>
-                        </div>
-                        <div className="card card-flush mb-5">
-                            <div className="card-body pt-5">
-                                <div className="d-flex flex-stack mb-5">
-                                    <div className="d-flex align-items-center position-relative my-1">
-                                        <h2 className="mb-0">{pageTitle ? pageTitle : ''}</h2>
-                                    </div>
-                                    <div className="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
-                                    {selectedIds.length === 0 && ( // Conditionally render Add button if no items are selected
-                                        <Link to="/award-category/create" className="btn btn-primary" style={{ marginLeft: '10px' }}>
-                                            Add
-                                        </Link>
-                                    )}
-
-                                        {selectedIds.length > 0 && (
-                                            <div className="d-flex justify-content-end align-items-center">
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-danger me-3"
-                                                    onClick={handleRemoveSelected}
-                                                >
-                                                    Remove Selected
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-light"
-                                                    onClick={() => setSelectedIds([])}
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                <table id="kt_datatable_example_1" className="table align-middle table-row-dashed fs-6 gy-5">
-                                    <thead>
-                                        <tr className="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                                            <th className="w-10px pe-2">
-                                                <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                                    <input
-                                                        className="form-check-input"
-                                                        type="checkbox"
-                                                        // checked={selectedIds.length === awardCategories.length}
-                                                        onChange={handleSelectAll}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Award ID</th>
-                                            <th>Main Sponsored ID</th>
-                                            <th>Status</th>
-                                            <th className="text-end min-w-100px">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-gray-600 fw-semibold">
-                                        {awardCategories.map((category) => (
-                                            <tr key={category.id}>
-                                                <td>
-                                                    <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                                    <input
-                                                        className="form-check-input"
-                                                        type="checkbox"
-                                                        checked={selectedIds.includes(category.id)} // Remains the same
-                                                        onChange={() => handleSelect(category.id)}
-                                                    />
-                                                    </div>
-                                                </td>
-                                                <td>{category.id}</td>
-                                                <td>{category.name}</td>
-                                                <td>{category.award_id}</td>
-                                                <td>{category.main_sponsored_id === 0 ? 'Sponso1' : 'Sponso2'}</td>
-                                                <td>
-                                                    <span
-                                                        className={`badge badge-${
-                                                            category.status === 'Inactive' ? 'light-danger' : 'light-success'
-                                                        }`}
-                                                    >
-                                                        {category.status}
-                                                    </span>
-                                                </td>
-                                                <td className="text-end">
-                                                    <Link to={`/award-category/edit/${category.id}`} className="btn btn-sm btn-light me-1">
-                                                        Edit
-                                                    </Link>
-                                                    <button
-                                                        className="btn btn-sm btn-danger"
-                                                        onClick={() => Delete(category.id)}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    const columns = [
+        {
+          name: <input className="form-check-input" type="checkbox" checked={selectedIds.length === awardCategories.length} onChange={handleSelectAll} />,
+          cell: (row: AwardCategory) => (
+            <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                value={row.id.toString()}
+                checked={selectedIds.includes(row.id)}
+                onChange={() => handleSelect(row.id)}
+              />
             </div>
+          ),
+          sortable: false,
+          ignoreRowClick: true,
+          allowOverflow: true,
+          button: false,
+          width: '80px',
+        },
+        {
+          name: 'ID',
+          selector: (row: AwardCategory) => row.id,
+          sortable: true,
+          width: '80px',
+        },
+        {
+          name: 'Date',
+          selector: (row: AwardCategory) => row.date,
+          sortable: true,
+          width: '200px',
+        },
+        {
+          name: 'Name',
+          selector: (row: AwardCategory) => row.name,
+          sortable: true,
+          width: '200px',
+        },
+        {
+          name: 'Award ID',
+          selector: (row: AwardCategory) => row.award_id,
+          sortable: true,
+          width: '200px',
+        },
+        {
+          name: 'Main Sponsored ID',
+          selector: (row: AwardCategory) => row.main_sponsored_id,
+          sortable: true,
+          width: '200px',
+        },
+        {
+          name: 'Status',
+          selector: (row: AwardCategory) => row.status,
+          sortable: true,
+          width: '250px',
+        },
+        {
+          name: 'Action',
+          cell: (row: AwardCategory) => (
+            <>
+              <div className="text-end">
+                <Link to={`/award-category/edit/${row.id}`} className="btn btn-sm btn-light me-2">
+                  Edit
+                </Link>
+                <button onClick={() => Delete(row.id)} className="btn btn-sm btn-light">
+                  Delete
+                </button>
+              </div>
+            </>
+          ),
+          style: {
+              display: 'flex',
+              justifyContent: 'flex-end',
+          },
+        },
+      ];
+      
+      const customStyles = {
+        
+        rows: {
+          style: {
+            minHeight: '72px',
+            borderBottom: '1px solid #dee2e6',
+          },
+        },
+        headCells: {
+          style: {
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            color: '#495057',
+            backgroundColor: '#f8f9fa',
+          },
+        },
+        cells: {
+          style: {
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            fontSize: '0.875rem',
+            color: '#212529',
+          },
+        },
+        
+      };
+      
+      if (loading) {
+          return <Loader />;
+      }
+
+      // Updated handleSearch function to match the expected structure
+      const handleSearch = ({ name, awardCategoryStatus, from_date, to_date }: 
+        { name: string; awardCategoryStatus: string, from_date: string, to_date: string }) => {
+        setSearchName(name);
+        setSearchStatus(awardCategoryStatus);
+        setFromDate(from_date); // New state for date filtering
+        setToDate(to_date);     // New state for date filtering
+      };
+      
+    
+      return (
+        <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
+          <Helmet>
+            <title>{pageTitle ? pageTitle : ''}</title>
+          </Helmet>
+          <div className="d-flex flex-column flex-column-fluid">
+            <div id="kt_app_toolbar" className="app-toolbar mb-5">
+              <Breadcrumb breadcrumbs={breadcrumbs} />
+            </div>
+            <div id="kt_app_content" className="app-content flex-column-fluid">
+              <div id="kt_app_content_container" className="app-container">
+                <div className="card card-flush mb-5">
+                  <div className="card-body pt-6 pb-3">
+                  <SearchForm  module={module} 
+                      moduleTitle={moduleTitle} onSearch={handleSearch} />
+                  </div>
+                </div>
+                <div className="card card-flush mb-5">
+                  <div className="card-body pt-5">
+                    <div className="d-flex flex-stack mb-5">
+                      <div className="d-flex align-items-center position-relative my-1">
+                        <h2 className="mb-0">{pageTitle ? pageTitle : ''}</h2>
+                      </div>
+                      <div className="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
+                        {selectedIds.length === 0 && (
+                          <Link to="/award-category/create" className="btn btn-primary" style={{ marginLeft: '10px' }}>
+                            Add
+                          </Link>
+                        )}
+                        {selectedIds.length > 0 && (
+                            
+                            <div className="d-flex justify-content-end align-items-center">
+                              <div className="fw-bold me-5">
+                                <span className="me-2">{selectedIds.length}</span> Selected
+                              </div>
+                              <button type="button" className="btn btn-danger me-3" onClick={handleRemoveSelected}>
+                                Remove Selected
+                              </button>
+                            </div>
+                        )}
+                      </div>
+                    </div>
+                    <DataTable
+                        columns={columns}
+                        data={paginatedData}
+                        customStyles={customStyles}
+                        pagination={false}
+                        noDataComponent="No Award Categories found"
+                    />
+                    {!loading && (
+                          <Pagination
+                              totalPages={totalPages}
+                              currentPage={currentPage}
+                              onPageChange={setCurrentPage}
+                              itemsPerPage={itemsPerPage}
+                              onItemsPerPageChange={setItemsPerPage}
+                          />
+                      )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+      );
 }
 
 export default Index;

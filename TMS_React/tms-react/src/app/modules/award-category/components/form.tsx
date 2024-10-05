@@ -12,7 +12,7 @@ interface FormProps {
   mode: 'create' | 'edit';
   initialValues: {
     name: string;
-    award_id: string;
+    // award_id: string;
     main_sponsored_id: string;
     status: string;
     description?: string;
@@ -32,7 +32,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
     initialValues: initialValues,
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
-      award_id: Yup.string().required('Year is required'),
+      // award_id: Yup.string().required('Year is required'),
       main_sponsored_id: Yup.string().required('Main Sponsor is required'),
       status: Yup.string().required('Status is required'),
       description: Yup.string().max(500, 'Description must be 500 characters or less'),
@@ -121,24 +121,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         ) : null}
                       </div>
 
-                      {/* Similar code for other fields like Year, Main Sponsor, Status, Description */}
-                      <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Year</label>
-                        <select
-                          name="award_id"
-                          className="form-control mb-2"
-                          value={formik.values.award_id}
-                          onChange={formik.handleChange}
-                          onBlur={formik.handleBlur}
-                        >
-                          <option value="">Select Year</option>
-                          <option value="2022">2022</option>
-                          <option value="2021">2021</option>
-                        </select>
-                        {formik.touched.award_id && formik.errors.award_id ? (
-                          <span className="text-danger">{formik.errors.award_id as string}</span>
-                        ) : null}
-                      </div>
+       
 
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Main Sponsor</label>
