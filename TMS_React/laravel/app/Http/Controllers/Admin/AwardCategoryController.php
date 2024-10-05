@@ -39,14 +39,20 @@ class AwardCategoryController extends Controller
         $admin = Auth::guard('api')->user();
         $award = Award::find($admin->award_id);
         
-        $credetials = json_encode($request->question);
-        // dd($credetials);
+        // Prepare questions with dynamic keys
+        $questionsWithKeys = [];
+        foreach ($request->question as $index => $question) {
+            $questionsWithKeys["question-" . ($index + 1)] = $question; // Dynamic key
+        }
+        
+        $credentials = json_encode($questionsWithKeys); // JSON-encoded questions
         $awardCategory = new AwardCategory();
         $awardCategory->name = $request->name;
         $awardCategory->description = $request->description;
         $awardCategory->status = $request->status;
         $awardCategory->award_id = $award->id;
         $awardCategory->main_sponsored_id = $request->main_sponsored_id;
+        $awardCategory->credentials = $credentials;
         $awardCategory->save();
 
         $this->responseData['status'] = 'success';

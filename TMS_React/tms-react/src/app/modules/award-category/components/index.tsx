@@ -310,7 +310,9 @@ function Index() {
         setToDate(to_date);     // New state for date filtering
       };
       
-    
+      const handleReset = () => {
+        setFilteredAwardCategories(awardCategories);
+    };
       return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
           <Helmet>
@@ -325,7 +327,7 @@ function Index() {
                 <div className="card card-flush mb-5">
                   <div className="card-body pt-6 pb-3">
                   <SearchForm  module={module} 
-                      moduleTitle={moduleTitle} onSearch={handleSearch} />
+                      moduleTitle={moduleTitle} onSearch={handleSearch} onReset={handleReset}/>
                   </div>
                 </div>
                 <div className="card card-flush mb-5">
