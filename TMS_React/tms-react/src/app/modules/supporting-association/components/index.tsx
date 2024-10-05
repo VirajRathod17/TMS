@@ -14,7 +14,7 @@ interface SupportingAssociation {
   id: number;
   name: string;
 //   year: string;
-//   status: string;
+  status: number;
   created_at: string;
 }
 
@@ -182,7 +182,14 @@ const Index: React.FC = () => {
 
   const columns = [
     {
-      name: <input className="form-check-input" type="checkbox" checked={isSelectAll} onChange={handleSelectAllChange} />,
+      name: (
+        <input
+          className="form-check-input"
+          type="checkbox"
+          checked={isSelectAll}
+          onChange={handleSelectAllChange}
+        />
+      ),
       cell: (row: SupportingAssociation) => (
         <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
           <input
@@ -218,12 +225,16 @@ const Index: React.FC = () => {
       sortable: true,
       width: '200px',
     },
-    // {
-    //   name: 'Award Year',
-    //   selector: (row: SupportingAssociation) => row.year,
-    //   sortable: true,
-    //   width: '200px',
-    // },
+    {
+      name: 'Status',
+      cell: (row: SupportingAssociation) => (
+        <span className={`badge ${row.status == 1 ? 'badge-light-success' : 'badge-light-danger'}`}>
+          {row.status == 1 ? 'Active' : 'Inactive'}
+        </span>
+      ),
+      sortable: true,
+      width: '200px',
+    },
     {
       name: 'Action',
       cell: (row: SupportingAssociation) => (

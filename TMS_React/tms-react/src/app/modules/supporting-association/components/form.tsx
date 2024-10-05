@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFormik, FormikErrors } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -20,10 +20,10 @@ interface FormProps {
   pageTitle: string;
 }
 
-const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle, }) => {
-
+const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: Yup.object({
@@ -37,32 +37,39 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
       status: Yup.string().required('Status is required'),
       image: Yup.mixed()
         .required('Image is required')
-        .test(
-          'fileSize',
-          'File too large',
-          (value) => value && value.size <= 1024 * 1024 * 5
-        )
-        .test(
-          'fileType',
-          'Unsupported File Format',
-          (value) => value && ['image/jpeg', 'image/png'].includes(value.type)
-        ),
+        .test('fileType', 'Unsupported File Format', (value) => {
+          return value && ['image/jpeg', 'image/png'].includes(value.type);
+        })
+        .test('fileSize', 'File too large', (value) => {
+          return value && value.size <= 1024 * 1024 * 5;
+        }),
     }),
 
     onSubmit: async (values) => {
-    //   setLoading(true);
+      setLoading(true);
       try {
         const token = localStorage.getItem('jwt_token');
         let method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
         let url = mode === 'edit' ? `${submitUrl}` : submitUrl;
 
+        const formData = new FormData();
+        formData.append('name', values.name);
+        formData.append('website_link', values.website_link);
+        formData.append('status', values.status);
+        formData.append('description', values.description);
+        
+        if (values.image) {
+          formData.append('image', values.image);
+      }
+
         const response = await axios({
-            method: method,
-            url: url,
-            data: values,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          method: method,
+          url: url,
+          data: formData,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
         });
 
         if (response.data.status === 'success') {
@@ -123,7 +130,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         maxLength={100}
                       />
                       {formik.touched.name && formik.errors.name && (
-                        <span className="text-danger">{formik.errors.name as string}</span>
+                        <span className="text-danger">{formik.errors.name}</span>
                       )}
                     </div>
                     <div className="col-md-4 fv-row">
@@ -138,7 +145,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         onBlur={formik.handleBlur}
                       />
                       {formik.touched.website_link && formik.errors.website_link && (
-                        <span className="text-danger">{formik.errors.website_link as string}</span>
+                        <span className="text-danger">{formik.errors.website_link}</span>
                       )}
                     </div>
                     <div className="col-md-4 fv-row">
@@ -147,6 +154,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         type="file"
                         name="image"
                         className="form-control mb-2"
+                        accept="image/*" // Accept only image files
                         onChange={(event) => {
                           if (event.target.files && event.target.files[0]) {
                             formik.setFieldValue('image', event.target.files[0]);
@@ -155,7 +163,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         onBlur={formik.handleBlur}
                       />
                       {formik.touched.image && formik.errors.image && (
-                        <span className="text-danger">{formik.errors.image as string}</span>
+                        <span className="text-danger">{formik.errors.image}</span>
                       )}
                     </div>
                     <div className="col-md-4 fv-row">
@@ -173,7 +181,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         <option value="1">Active</option>
                       </select>
                       {formik.touched.status && formik.errors.status && (
-                        <span className="text-danger">{formik.errors.status as string}</span>
+                        <span className="text-danger">{formik.errors.status}</span>
                       )}
                     </div>
                     <div className="col-md-8 fv-row">

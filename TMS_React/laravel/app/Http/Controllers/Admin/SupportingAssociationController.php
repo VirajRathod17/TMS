@@ -50,6 +50,11 @@ class SupportingAssociationController extends Controller
 
     public function store(Request $request)
     {
+        // echo '<pre>';
+        //     print_r($request->all());
+        //     echo '</pre>';
+        // exit();
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100',
             'website_link' => 'nullable|string|max:255',
@@ -132,18 +137,18 @@ class SupportingAssociationController extends Controller
 
     public function update(Request $request, $id)
     {
-
-        echo "<pre>";
-        print_r($request->all());
+        echo '<pre>';
+            print_r($request->all());
+            echo '</pre>';
         exit();
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:2|max:100',
-            'website_link' => 'nullable|string|max:255',
-            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:2048',
-            'status' => 'required',
-            'award_id' => 'nullable',
-            'description' => 'required',
+            // 'name' => 'required|string|min:2|max:100',
+            // 'website_link' => 'nullable|string|max:255',
+            // 'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:2048',
+            // 'status' => 'required',
+            // 'award_id' => 'nullable',
+            // 'description' => 'required',
         ]);
     
         if ($validator->fails()) {
