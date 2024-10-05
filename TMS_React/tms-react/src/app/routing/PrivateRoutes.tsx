@@ -9,6 +9,7 @@ import { dynamicRoutes } from './dynamicRoutes';
 // import Create from '../modules/awards/components/create'
 
 import UpdateProfile from '../modules/auth/components/UpdateProfile'
+import ChangePassword from '../modules/auth/components/ChangePassword'
 
 const isTokenExpired = () => {
   const expirationTime = localStorage.getItem('jwt_expiration');
@@ -42,6 +43,8 @@ const PrivateRoutes = () => {
           />
         ))}
         <Route path='/profile' element={<UpdateProfile/>} />
+        <Route path='/change-password' element={<ChangePassword/>} />
+
       </Route>
     </Routes>
   )

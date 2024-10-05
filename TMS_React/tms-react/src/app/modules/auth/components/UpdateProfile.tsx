@@ -4,7 +4,9 @@ import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
+
 import 'sweetalert2/dist/sweetalert2.min.css';
+
 import { toAbsoluteUrl } from '../../../../_metronic/helpers';
 
 const UpdateProfile = () => {
@@ -17,7 +19,6 @@ const UpdateProfile = () => {
     image: null,
   });
 
-  // Fetch user profile data on component mount
   useEffect(() => {
     const getProfile = async () => {
       try {
@@ -29,9 +30,11 @@ const UpdateProfile = () => {
           image: data.image,
         });
 
+
         const fullImageUrl = data.image;
         setProfileImage(fullImageUrl || toAbsoluteUrl('/media/avatars/blank.png'));
         // setLoadingProfile(false); // Stop the loading state once data is fetched
+
       } catch (error) {
         console.error('Error fetching user profile', error);
         // setLoadingProfile(false);
@@ -41,10 +44,11 @@ const UpdateProfile = () => {
     getProfile();
   }, []);
 
-  // Formik setup
+
   const formik = useFormik({
     initialValues: initialValues,
-    enableReinitialize: true, // Allow reinitializing the form when the initialValues change
+    enableReinitialize: true,
+
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
       email: Yup.string().email('Invalid email format').required('Email is required'),
@@ -71,11 +75,15 @@ const UpdateProfile = () => {
           }
         );
 
+
         Swal.fire({
           icon: 'success',
           title: 'Profile updated successfully',
           confirmButtonText: 'OK'
         });
+
+
+        console.log('Profile updated successfully');
       } catch (error) {
         console.error('Error updating profile', error);
         Swal.fire({

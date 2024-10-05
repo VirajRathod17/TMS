@@ -27,6 +27,8 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::any('/get-user', [LoginController::class, 'getProfile'])->name('get-user'); 
         Route::post('change-award-year', [LoginController::class, 'changeAwardYear'])->name('change-award-year');
         
+        Route::post('/change-password', [LoginController::class, 'changePassword'])->name('change-password');
+
         
         Route::resource('award-category', 'AwardCategoryController');
         Route::group(['controller' => 'AwardCategoryController'], function () {
