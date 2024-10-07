@@ -74,12 +74,12 @@ const handleAwardChange = async (event: React.ChangeEvent<HTMLSelectElement>) =>
         title='Award Category'
         fontIcon='bi-app-indicator'
       />
-      <AsideMenuItem
+      {/* <AsideMenuItem
         to='/sponsers'
         icon='/media/icons/duotune/art/art002.svg'
         title='Sponsers'
         fontIcon='bi-app-indicator'
-      />
+      /> */}
     </>
   )
 }

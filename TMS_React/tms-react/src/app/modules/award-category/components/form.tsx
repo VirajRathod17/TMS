@@ -77,18 +77,18 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
       } catch (error) {
         console.log('Error submitting form:', error);
       } finally {
-        setLoading(false); // Hide loader
+        setLoading(false); 
       }
     },
   });
 
   const addQuestion = () => {
-    formik.setFieldValue('questions', [...formik.values.questions, '']); // Add a new empty string for the new question
+    formik.setFieldValue('questions', [...formik.values.questions, '']); 
   };
 
   const removeQuestion = (index: number) => {
-    const updatedQuestions = formik.values.questions.filter((_, idx) => idx !== index); // Remove question by index
-    formik.setFieldValue('questions', updatedQuestions); // Update Formik's state
+    const updatedQuestions = formik.values.questions.filter((_, idx) => idx !== index); 
+    formik.setFieldValue('questions', updatedQuestions); 
   };
 
   return (
@@ -225,13 +225,14 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                       </div>
                     </div>
                     <div className="d-flex justify-content-end">
+                    <Link to={redirectUrl} className="btn btn-light me-3">
+                        Cancel
+                      </Link>
                       <button type="submit" className="btn btn-primary">
                         Submit
                       </button>
                       &nbsp;
-                      <Link to={redirectUrl} className="btn btn-light me-3">
-                        Cancel
-                      </Link>
+                      
                     </div>
                   </div>
                 </div>
