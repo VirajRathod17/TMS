@@ -13,9 +13,10 @@ import SearchForm from '../../include/searchForm';
 interface SupportingAssociation {
   id: number;
   name: string;
-//   year: string;
+  image: string;
   status: number;
   created_at: string;
+  image_path: string;
 }
 
 const Index: React.FC = () => {
@@ -77,6 +78,9 @@ const Index: React.FC = () => {
             },
           }
         );
+
+        // console.log('Fetched Supporting Associations:', response.data.data);
+
         setSupportingAssociation(response.data.data);
       } catch (error) {
         console.error('Error fetching Supporting Association:', error);
@@ -155,7 +159,7 @@ const Index: React.FC = () => {
       if (result.isConfirmed) {
         const token = localStorage.getItem('jwt_token');
         axios
-          .delete(`${process.env.REACT_APP_API_BASE_URL}/awards-delete-multiple`, {
+          .delete(`${process.env.REACT_APP_API_BASE_URL}supporting-association-delete-multiple`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -224,6 +228,23 @@ const Index: React.FC = () => {
       selector: (row: SupportingAssociation) => row.name,
       sortable: true,
       width: '200px',
+    },
+    {
+      name: 'Image',
+      sortable: true,
+      width: '250px',
+      cell: (row: SupportingAssociation) => {
+        const imageUrl = row.image_path;
+        return (
+          <img 
+            src={imageUrl}
+            alt={row.name}
+            width="100" 
+            height="100" 
+            style={{ objectFit: 'cover' }} 
+          />
+        );
+      }
     },
     {
       name: 'Status',

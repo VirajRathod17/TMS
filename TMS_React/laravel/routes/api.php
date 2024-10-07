@@ -36,6 +36,7 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
             Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('awards-delete-multiple');
         });
         
+        // Route::post('/update/{id}', 'SupportingAssociationController@update');
         Route::resource('/supporting-association', 'SupportingAssociationController');
         Route::group(['controller' => 'SupportingAssociationController'], function () {
             Route::delete('/supporting-association-delete-multiple', 'deleteMultipleSupportingAssociationsById')->name('supporting-association-delete-multiple');

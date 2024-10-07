@@ -27,8 +27,14 @@ class SupportingAssociationController extends Controller
     {
         $suppo_assos = $this->modelObj::all();
 
-        if(isset($suppo_assos))
-        {
+        if ($suppo_assos->isNotEmpty()) {
+
+            $suppo_assos = $suppo_assos->map(function ($item) {
+
+                $item->image_path = url('admin/uploads/supporting-associations/' . $item->id .'/'. $item->image);
+                return $item;
+            });
+
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Supporting Association";
             $this->responseData['data'] = $suppo_assos;
@@ -50,11 +56,11 @@ class SupportingAssociationController extends Controller
 
     public function store(Request $request)
     {
-        // echo '<pre>';
-        //     print_r($request->all());
-        //     echo '</pre>';
-        // exit();
-
+        echo '<pre>';
+            print_r($request->all());
+            echo '</pre>';
+        exit();
+   
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100',
             'website_link' => 'nullable|string|max:255',
@@ -102,7 +108,6 @@ class SupportingAssociationController extends Controller
                 'data' => $suppo_assos,
             ], 201);
         }catch (\Exception $e) {
-            // Log the error to the log file with exception details
             Log::error('Error occurred while creating Supporting Association: ' . $e->getMessage(), [
                 'exception' => $e,
                 'request_data' => $request->all()
@@ -117,10 +122,14 @@ class SupportingAssociationController extends Controller
 
     public function show($id)
     {
+        
+
         $suppo_assos = $this->modelObj::find($id);
 
-        if(isset($suppo_assos))
-        {
+        if(isset($suppo_assos)) {
+
+            $suppo_assos->image_path = url('admin/uploads/supporting-associations/' . $suppo_assos->id .'/'. $suppo_assos->image);
+
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Supporting Association";
             $this->responseData['data'] = $suppo_assos;
@@ -137,38 +146,45 @@ class SupportingAssociationController extends Controller
 
     public function update(Request $request, $id)
     {
-        echo '<pre>';
+        
+        echo 'asd'.'<pre>';
             print_r($request->all());
-            echo '</pre>';
+        echo '</pre>';
         exit();
 
-        $validator = Validator::make($request->all(), [
-            // 'name' => 'required|string|min:2|max:100',
-            // 'website_link' => 'nullable|string|max:255',
-            // 'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:2048',
-            // 'status' => 'required',
-            // 'award_id' => 'nullable',
-            // 'description' => 'required',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()->first(),
-            ], 422);
-        }
-    
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'required|string|min:2|max:100',
+        //     'website_link' => 'nullable|string|max:255',
+        //     'image' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
+        //     'status' => 'required',
+        //     'description' => 'required',
+        // ]);
+
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => $validator->errors()->first(),
+        //     ], 422);
+        // }
+
         try {
             $suppo_assos = $this->modelObj::findOrFail($id);
-    
-            $suppo_assos->update([
+            
+            $data = [
                 'name' => $request->name,
                 'website_link' => $request->website_link,
-                // 'award_id' => $request->award_id,
                 'status' => $request->status,
                 'description' => $request->description,
-            ]);
-    
+            ];
+
+            // Handle the image upload
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('images'); // Store the image and get its path
+                $data['image'] = $imagePath; // Update the path in the data array
+            }
+
+            $suppo_assos->update($data);
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Supporting Association updated successfully',
@@ -181,6 +197,7 @@ class SupportingAssociationController extends Controller
             ], 500);
         }
     }
+
 
     public function destroy($id)
     {

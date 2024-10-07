@@ -1,0 +1,30 @@
+.quill {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    background-color: #fff;
+    padding: 0.5rem;
+  }
+  
+  .ql-toolbar {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem 0.25rem 0 0;
+  }
+  
+  .ql-editor {
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+ 
+  .ql-editor.ql-blank::before {
+    color: #6c757d;
+    font-style: italic;
+  }
+
+  @media (max-width: 576px) {
+    .ql-editor {
+      min-height: 150px;
+    }
+  }
+  

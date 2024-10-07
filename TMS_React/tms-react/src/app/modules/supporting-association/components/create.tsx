@@ -10,6 +10,7 @@ function Create() {
         image: null,
         status: '',
         description: '',
+        image_path: '',
       };
 
   const pageTitle = 'Add Supporting Association'; 

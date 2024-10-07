@@ -4,6 +4,9 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import './quillEditor.css';
 
 interface FormProps {
   mode: 'create' | 'edit';
@@ -13,6 +16,7 @@ interface FormProps {
     image: File | null;
     status: string;
     description: string;
+    image_path: string;
   };
   submitUrl: string;
   redirectUrl: string;
@@ -22,8 +26,9 @@ interface FormProps {
 
 const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(initialValues.image_path || null);
   const navigate = useNavigate();
-  
+
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: Yup.object({
@@ -36,38 +41,44 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
         .required('Website Link is required'),
       status: Yup.string().required('Status is required'),
       image: Yup.mixed()
-        .required('Image is required')
         .test('fileType', 'Unsupported File Format', (value) => {
-          return value && ['image/jpeg', 'image/png'].includes(value.type);
+          if (value && value.type) return ['image/jpeg', 'image/png'].includes(value.type);
+          return true; // Allow no image change during edit
         })
         .test('fileSize', 'File too large', (value) => {
-          return value && value.size <= 1024 * 1024 * 5;
+          if (value && value.size) return value.size <= 1024 * 1024 * 5;
+          return true; // Allow no image change during edit
         }),
     }),
 
     onSubmit: async (values) => {
       setLoading(true);
+
       try {
         const token = localStorage.getItem('jwt_token');
         let method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
         let url = mode === 'edit' ? `${submitUrl}` : submitUrl;
 
         const formData = new FormData();
+
+        // Append regular fields
         formData.append('name', values.name);
         formData.append('website_link', values.website_link);
         formData.append('status', values.status);
         formData.append('description', values.description);
-        
+
+        // Append image if a new image is selected, otherwise do not append it
         if (values.image) {
           formData.append('image', values.image);
-      }
+        }
 
+        // Make the API request
         const response = await axios({
           method: method,
           url: url,
           data: formData,
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
         });
@@ -100,6 +111,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
 
   useEffect(() => {
     formik.setValues(initialValues);
+    setImagePreview(initialValues.image_path || null); // Reset image preview on mode change
   }, [initialValues]);
 
   return (
@@ -114,7 +126,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                 </div>
               </div>
               <div className="card-body pt-0">
-                <form id="form-input" encType="multipart/form-data" onSubmit={formik.handleSubmit}>
+                <form id="form-input" onSubmit={formik.handleSubmit}>
                   <div className="row">
                     <div className="col-md-4 fv-row">
                       <label className="required form-label">Name</label>
@@ -149,21 +161,33 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                       )}
                     </div>
                     <div className="col-md-4 fv-row">
-                      <label className="required form-label">Image</label>
+                      <label className="form-label">Image</label>
                       <input
                         type="file"
                         name="image"
                         className="form-control mb-2"
-                        accept="image/*" // Accept only image files
+                        accept="image/*"
                         onChange={(event) => {
                           if (event.target.files && event.target.files[0]) {
                             formik.setFieldValue('image', event.target.files[0]);
+                            setImagePreview(URL.createObjectURL(event.target.files[0]));
                           }
                         }}
                         onBlur={formik.handleBlur}
                       />
                       {formik.touched.image && formik.errors.image && (
                         <span className="text-danger">{formik.errors.image}</span>
+                      )}
+                      {imagePreview && ( 
+                        <div className="mt-3">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            width="100"
+                            height="100"
+                            style={{ objectFit: 'cover', borderRadius: '5px' }}
+                          />
+                        </div>
                       )}
                     </div>
                     <div className="col-md-4 fv-row">
@@ -184,17 +208,16 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         <span className="text-danger">{formik.errors.status}</span>
                       )}
                     </div>
-                    <div className="col-md-8 fv-row">
+                    <div className="col-md-12 fv-row mt-2">
                       <label htmlFor="description" className="form-label">Description</label>
-                      <textarea
-                        id="description"
-                        name="description"
-                        className="form-control"
-                        placeholder="Enter a description"
+                      <ReactQuill
                         value={formik.values.description}
-                        onChange={formik.handleChange}
-                        rows={3}
+                        onChange={(value) => formik.setFieldValue('description', value)}
+                        onBlur={formik.handleBlur}
                       />
+                      {formik.touched.description && formik.errors.description && (
+                        <span className="text-danger">{formik.errors.description}</span>
+                      )}
                     </div>
                   </div>
                   <div className="d-flex justify-content-end py-4">
