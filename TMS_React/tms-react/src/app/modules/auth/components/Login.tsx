@@ -45,7 +45,7 @@ export function Login() {
 
         if (status === 'success') {
           // Save the token and its expiration time to localStorage
-          const expirationTime = new Date().getTime() + 5 * 60 * 60 * 1000; // 5 hours from now
+          const expirationTime = new Date().getTime() + 5 * 60 * 60 * 1000; 
           localStorage.setItem('jwt_token', token);
           localStorage.setItem('jwt_expiration', expirationTime.toString());
           navigate("/");
@@ -56,7 +56,7 @@ export function Login() {
           setLoading(false);
         }
       } catch (error) {
-        const axiosError = error as AxiosError; // Type assertion
+        const axiosError = error as AxiosError; 
 
         if (axiosError.response && axiosError.response.data) {
           const { message } = axiosError.response.data;

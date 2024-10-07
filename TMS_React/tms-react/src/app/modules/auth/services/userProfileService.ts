@@ -1,3 +1,5 @@
+// src/services/userProfileService.js
+
 import axios from 'axios';
 
 // Function to fetch user profile
