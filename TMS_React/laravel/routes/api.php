@@ -44,5 +44,8 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         // Route::group(['controller' => 'SponsorController'], function () {
         //     Route::post('sponsor-multiple-delete', 'multipleDelete')->name('sponsor-multiple-delete');
         // });
+
+
+        Route::resource('judges', 'JudgesController');
     }); 
 });
