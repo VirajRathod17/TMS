@@ -1,4 +1,3 @@
-// src/components/Form.tsx
 import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -15,7 +14,7 @@ interface FormProps {
   redirectUrl: string;
   successMessage: string;
   pageTitle: string;
-  oldImageUrl?: string; // Optional prop to hold the old image URL
+  oldImageUrl?: string; // Add this prop to hold the old image URL
 }
 
 type FormValues = {
@@ -34,17 +33,17 @@ const Form: React.FC<FormProps> = ({
   redirectUrl,
   successMessage,
   pageTitle,
-  oldImageUrl,
+  oldImageUrl, // Receive the old image URL
 }) => {
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(oldImageUrl || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(oldImageUrl || null); // Set initial preview to old image URL
   const navigate = useNavigate();
 
   const formik = useFormik<FormValues>({
     initialValues: initialValues,
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
-      image: Yup.mixed().nullable(), // Make image nullable
+      image: Yup.mixed().required('Image is required'),
       award_id: Yup.string().required('Year is required'),
       website_link: Yup.string().url('Invalid URL format').required('Website link is required'),
       description: Yup.string().max(500, 'Description must be 500 characters or less'),
@@ -56,15 +55,14 @@ const Form: React.FC<FormProps> = ({
         const token = localStorage.getItem('jwt_token');
         const formData = new FormData();
 
+        // Append all form values to FormData
         Object.keys(values).forEach((key) => {
-          if (key === 'image' && !values.image) {
-            return; // Skip appending image if it's not provided
-          }
           formData.append(key, values[key as keyof FormValues] as any);
         });
 
         const method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
 
+        // Send the request
         const response = await axios({
           method: method,
           url: submitUrl,
@@ -83,8 +81,8 @@ const Form: React.FC<FormProps> = ({
             confirmButtonText: 'OK',
           }).then(() => {
             navigate(redirectUrl);
-            formik.resetForm();
-            setImagePreview(null);
+            formik.resetForm(); // Clear the form after successful submission
+            setImagePreview(null); // Clear the image preview
           });
         } else {
           Swal.fire({
@@ -96,6 +94,7 @@ const Form: React.FC<FormProps> = ({
         }
       } catch (error) {
         console.error('Error submitting form:', error);
+
         if (axios.isAxiosError(error)) {
           if (error.response) {
             const errorMessage = error.response.data.message || 'An unknown error occurred';
@@ -131,16 +130,18 @@ const Form: React.FC<FormProps> = ({
     const file = event.currentTarget.files ? event.currentTarget.files[0] : null;
     formik.setFieldValue('image', file);
 
+    // If an image is selected, create a preview
     if (file) {
       const fileURL = URL.createObjectURL(file);
       setImagePreview(fileURL);
     } else {
-      setImagePreview(oldImageUrl || null);
+      setImagePreview(oldImageUrl || null); // Reset to old image if no file is selected
     }
   };
 
   useEffect(() => {
     formik.setValues(initialValues);
+    // If oldImageUrl is provided, set it as the initial preview
     if (oldImageUrl) {
       setImagePreview(oldImageUrl);
     }
@@ -163,7 +164,7 @@ const Form: React.FC<FormProps> = ({
                   <form id="form-input" encType="multipart/form-data" onSubmit={formik.handleSubmit}>
                     <div className="row">
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label">Name</label>
+                        <label className="required form-label manager-code">Name</label>
                         <input
                           type="text"
                           name="name"
@@ -180,7 +181,7 @@ const Form: React.FC<FormProps> = ({
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label">Image</label>
+                        <label className="required form-label manager-code">Image</label>
                         <input
                           type="file"
                           name="image"
@@ -200,7 +201,7 @@ const Form: React.FC<FormProps> = ({
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label">Year</label>
+                        <label className="required form-label manager-code">Year</label>
                         <select
                           name="award_id"
                           className="form-control mb-2"
@@ -219,7 +220,7 @@ const Form: React.FC<FormProps> = ({
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label">Website Link</label>
+                        <label className="required form-label manager-code">Website Link</label>
                         <input
                           type="url"
                           name="website_link"
@@ -236,7 +237,7 @@ const Form: React.FC<FormProps> = ({
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label">Status</label>
+                        <label className="required form-label manager-code">Status</label>
                         <select
                           name="status"
                           className="form-control mb-2"
@@ -255,7 +256,7 @@ const Form: React.FC<FormProps> = ({
                       </div>
 
                       <div className="col-md-8 fv-row">
-                        <label className="form-label">Description</label>
+                        <label className="form-label manager-code">Description</label>
                         <textarea
                           name="description"
                           className="form-control mb-2"
@@ -269,15 +270,12 @@ const Form: React.FC<FormProps> = ({
                           <span className="text-danger">{formik.errors.description}</span>
                         )}
                       </div>
-
-                      <div className="col-md-4 d-flex align-items-center">
-                        <button type="submit" className="btn btn-primary me-2" id="submit-button">
-                          {mode === 'edit' ? 'Update' : 'Create'}
-                        </button>
-                        <Link to={redirectUrl} className="btn btn-light">
-                          Cancel
-                        </Link>
-                      </div>
+                    </div>
+                    <div className="d-flex justify-content-end py-4">
+                      <Link to={redirectUrl} className="btn btn-sm btn-flex bg-body btn-color-primary-700 btn-active-color-primary fw-bold me-5">Cancel</Link>
+                      <button type="submit" className="btn btn-primary" disabled={loading}>
+                        {loading ? 'Submitting...' : 'Submit'}
+                      </button>
                     </div>
                   </form>
                 </div>
