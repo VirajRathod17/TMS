@@ -1,3 +1,4 @@
+// src/components/Form.tsx
 import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -7,51 +8,70 @@ import Swal from 'sweetalert2';
 import Loader from '../../include/loader';
 import '../../include/loader.css';
 
-// Define the types for the props
 interface FormProps {
   mode: 'create' | 'edit';
-  initialValues: {
-    name: string;
-    award_id: string;
-    main_sponsored_id: string;
-    status: string;
-    description?: string;
-  };
+  initialValues: FormValues;
   submitUrl: string;
   redirectUrl: string;
   successMessage: string;
   pageTitle: string;
+  oldImageUrl?: string; // Optional prop to hold the old image URL
 }
 
-// The Form component
-const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
+type FormValues = {
+  name: string;
+  image: File | null;
+  award_id: string;
+  website_link: string;
+  description?: string;
+  status: string;
+};
+
+const Form: React.FC<FormProps> = ({
+  mode,
+  initialValues,
+  submitUrl,
+  redirectUrl,
+  successMessage,
+  pageTitle,
+  oldImageUrl,
+}) => {
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(oldImageUrl || null);
   const navigate = useNavigate();
-  
-  const formik = useFormik({
+
+  const formik = useFormik<FormValues>({
     initialValues: initialValues,
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
+      image: Yup.mixed().nullable(), // Make image nullable
       award_id: Yup.string().required('Year is required'),
-      main_sponsored_id: Yup.string().required('Main Sponsor is required'),
-      status: Yup.string().required('Status is required'),
+      website_link: Yup.string().url('Invalid URL format').required('Website link is required'),
       description: Yup.string().max(500, 'Description must be 500 characters or less'),
+      status: Yup.string().required('Status is required'),
     }),
     onSubmit: async (values) => {
-      setLoading(true); // Show loader
+      setLoading(true);
       try {
         const token = localStorage.getItem('jwt_token');
+        const formData = new FormData();
 
-        // Determine the request method
+        Object.keys(values).forEach((key) => {
+          if (key === 'image' && !values.image) {
+            return; // Skip appending image if it's not provided
+          }
+          formData.append(key, values[key as keyof FormValues] as any);
+        });
+
         const method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
-        const url = mode === 'edit' ? submitUrl : submitUrl;
 
         const response = await axios({
           method: method,
-          url: url,
-          data: values,
+          url: submitUrl,
+          data: formData,
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
           },
         });
 
@@ -64,6 +84,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
           }).then(() => {
             navigate(redirectUrl);
             formik.resetForm();
+            setImagePreview(null);
           });
         } else {
           Swal.fire({
@@ -75,15 +96,55 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
         }
       } catch (error) {
         console.error('Error submitting form:', error);
+        if (axios.isAxiosError(error)) {
+          if (error.response) {
+            const errorMessage = error.response.data.message || 'An unknown error occurred';
+            Swal.fire({
+              title: 'Error',
+              text: errorMessage,
+              icon: 'error',
+              confirmButtonText: 'OK',
+            });
+          } else {
+            Swal.fire({
+              title: 'Error',
+              text: 'No response received from the server. Please try again later.',
+              icon: 'error',
+              confirmButtonText: 'OK',
+            });
+          }
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: 'An unexpected error occurred. Please try again later.',
+            icon: 'error',
+            confirmButtonText: 'OK',
+          });
+        }
       } finally {
-        setLoading(false); // Hide loader
+        setLoading(false);
       }
     },
   });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files ? event.currentTarget.files[0] : null;
+    formik.setFieldValue('image', file);
+
+    if (file) {
+      const fileURL = URL.createObjectURL(file);
+      setImagePreview(fileURL);
+    } else {
+      setImagePreview(oldImageUrl || null);
+    }
+  };
+
   useEffect(() => {
     formik.setValues(initialValues);
-  }, [initialValues]);
+    if (oldImageUrl) {
+      setImagePreview(oldImageUrl);
+    }
+  }, [initialValues, oldImageUrl]);
 
   return (
     <>
@@ -95,14 +156,14 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
               <div className="card card-flush">
                 <div className="card-header">
                   <div className="card-title">
-                    <h2>{pageTitle ? pageTitle : ''}</h2>
+                    <h2>{pageTitle}</h2>
                   </div>
                 </div>
                 <div className="card-body pt-0">
                   <form id="form-input" encType="multipart/form-data" onSubmit={formik.handleSubmit}>
                     <div className="row">
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Name</label>
+                        <label className="required form-label">Name</label>
                         <input
                           type="text"
                           name="name"
@@ -111,8 +172,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           value={formik.values.name}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          minLength={3} 
-                          maxLength={30}
+                          aria-label="Name"
                         />
                         {formik.touched.name && formik.errors.name && (
                           <span className="text-danger">{formik.errors.name}</span>
@@ -120,13 +180,34 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Year</label>
+                        <label className="required form-label">Image</label>
+                        <input
+                          type="file"
+                          name="image"
+                          className="form-control mb-2"
+                          onChange={handleFileChange}
+                          onBlur={formik.handleBlur}
+                          aria-label="Image"
+                        />
+                        {formik.touched.image && formik.errors.image && (
+                          <span className="text-danger">{formik.errors.image}</span>
+                        )}
+                        {imagePreview && (
+                          <div className="mt-2">
+                            <img src={imagePreview} alt="Preview" style={{ width: '100%', height: 'auto' }} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="col-md-4 fv-row">
+                        <label className="required form-label">Year</label>
                         <select
                           name="award_id"
                           className="form-control mb-2"
                           value={formik.values.award_id}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
+                          aria-label="Year"
                         >
                           <option value="">Select Year</option>
                           <option value="2022">2022</option>
@@ -138,31 +219,31 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Main Sponsor</label>
-                        <select
-                          name="main_sponsored_id"
+                        <label className="required form-label">Website Link</label>
+                        <input
+                          type="url"
+                          name="website_link"
                           className="form-control mb-2"
-                          value={formik.values.main_sponsored_id}
+                          placeholder="Enter Website URL"
+                          value={formik.values.website_link}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                        >
-                          <option value="">Select Main Sponsor</option>
-                          <option value="0">Sponsor 1</option>
-                          <option value="1">Sponsor 2</option>
-                        </select>
-                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id && (
-                          <span className="text-danger">{formik.errors.main_sponsored_id}</span>
+                          aria-label="Website Link"
+                        />
+                        {formik.touched.website_link && formik.errors.website_link && (
+                          <span className="text-danger">{formik.errors.website_link}</span>
                         )}
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Status</label>
+                        <label className="required form-label">Status</label>
                         <select
                           name="status"
                           className="form-control mb-2"
                           value={formik.values.status}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
+                          aria-label="Status"
                         >
                           <option value="">Select Status</option>
                           <option value="1">Active</option>
@@ -172,25 +253,31 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           <span className="text-danger">{formik.errors.status}</span>
                         )}
                       </div>
-                        
+
                       <div className="col-md-8 fv-row">
-                        <label className="required form-label manager-code">Description</label>
+                        <label className="form-label">Description</label>
                         <textarea
                           name="description"
                           className="form-control mb-2"
                           placeholder="Enter Description"
-                          value={formik.values.description}
+                          value={formik.values.description || ''}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
+                          aria-label="Description"
                         />
                         {formik.touched.description && formik.errors.description && (
                           <span className="text-danger">{formik.errors.description}</span>
                         )}
                       </div>
-                    </div>
-                    <div className="d-flex justify-content-end py-4">
-                      <Link to="#" className="btn btn-sm btn-flex bg-body btn-color-primary-700 btn-active-color-primary fw-bold me-5" style={{ marginLeft: '10px' }}>Cancel</Link>
-                      <button type="submit" className="btn btn-primary">Submit</button>
+
+                      <div className="col-md-4 d-flex align-items-center">
+                        <button type="submit" className="btn btn-primary me-2" id="submit-button">
+                          {mode === 'edit' ? 'Update' : 'Create'}
+                        </button>
+                        <Link to={redirectUrl} className="btn btn-light">
+                          Cancel
+                        </Link>
+                      </div>
                     </div>
                   </form>
                 </div>
@@ -201,6 +288,6 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
       </div>
     </>
   );
-}
+};
 
 export default Form;
