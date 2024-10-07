@@ -120,20 +120,20 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Year</label>
+                        <label className="required form-label manager-code">Main Sponsor</label>
                         <select
-                          name="award_id"
+                          name="main_sponsored_id"
                           className="form-control mb-2"
-                          value={formik.values.award_id}
+                          value={formik.values.main_sponsored_id}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
                         >
-                          <option value="">Select Year</option>
-                          <option value="2022">2022</option>
-                          <option value="2021">2021</option>
+                          <option value="">Select Main Sponsor</option>
+                          <option value="0">Sponsor 1</option>
+                          <option value="1">Sponsor 2</option>
                         </select>
-                        {formik.touched.award_id && formik.errors.award_id && (
-                          <span className="text-danger">{formik.errors.award_id}</span>
+                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id && (
+                          <span className="text-danger">{formik.errors.main_sponsored_id}</span>
                         )}
                       </div>
 
