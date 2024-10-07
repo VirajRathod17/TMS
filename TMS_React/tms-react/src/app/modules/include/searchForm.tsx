@@ -6,9 +6,10 @@ interface SearchFormProps {
     module: string;
     moduleTitle: string;
     onSearch: (query: { name: string; awardCategoryStatus: string; from_date: string; to_date: string }) => void;
+    onReset: () => void;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch }) => {
+const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch,onReset}) => {
     const [name, setName] = React.useState('');
     const [awardCategoryStatus, setAwardCategoryStatus] = React.useState('');
     const [loading, setLoading] = React.useState(false);
@@ -42,6 +43,15 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch }
 
             setLoading(false);
         }
+    };
+
+    const handleReset = () => {
+        // Reset all state variables
+        setName('');
+        setAwardCategoryStatus('');
+        setFromDate('');
+        setToDate('');
+        onReset();
     };
 
     return (
@@ -117,6 +127,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch }
                     &nbsp;&nbsp;
                     <button
                         className="btn btn-secondary btn-secondary--icon"
+                        onClick={handleReset}
                     >
                         <span>
                             <i className="la la-close"></i>

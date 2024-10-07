@@ -9,6 +9,9 @@ import {Helmet} from 'react-helmet';
 import SearchForm from '../../include/searchForm';
 import DataTable from 'react-data-table-component';
 import Pagination from '../../include/pagination';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Badge } from 'react-bootstrap';
 
 interface AwardCategory {
     id: number;
@@ -243,7 +246,10 @@ function Index() {
         },
         {
           name: 'Status',
-          selector: (row: AwardCategory) => row.status,
+          cell: (row: AwardCategory) => 
+            row.status === 'Active' 
+              ? <span className="badge badge-light-success">{row.status}</span> 
+              : <span className="badge badge-light-danger">{row.status}</span>,
           sortable: true,
           width: '250px',
         },
@@ -252,11 +258,11 @@ function Index() {
           cell: (row: AwardCategory) => (
             <>
               <div className="text-end">
-                <Link to={`/award-category/edit/${row.id}`} className="btn btn-sm btn-light me-2">
-                  Edit
+                <Link to={`/award-category/edit/${row.id}`} className="btn btn-sm btn-info me-2">
+                   <FontAwesomeIcon icon={faPenToSquare} />
                 </Link>
-                <button onClick={() => Delete(row.id)} className="btn btn-sm btn-light">
-                  Delete
+                <button onClick={() => Delete(row.id)} className="btn btn-sm btn-danger">
+                <FontAwesomeIcon icon={faTrash} />
                 </button>
               </div>
             </>
@@ -310,7 +316,9 @@ function Index() {
         setToDate(to_date);     // New state for date filtering
       };
       
-    
+      const handleReset = () => {
+        setFilteredAwardCategories(awardCategories);
+    };
       return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
           <Helmet>
@@ -325,7 +333,7 @@ function Index() {
                 <div className="card card-flush mb-5">
                   <div className="card-body pt-6 pb-3">
                   <SearchForm  module={module} 
-                      moduleTitle={moduleTitle} onSearch={handleSearch} />
+                      moduleTitle={moduleTitle} onSearch={handleSearch} onReset={handleReset}/>
                   </div>
                 </div>
                 <div className="card card-flush mb-5">
