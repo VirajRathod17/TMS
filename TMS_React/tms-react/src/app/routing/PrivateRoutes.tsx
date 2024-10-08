@@ -19,7 +19,7 @@ const isTokenExpired = () => {
 const PrivateRoutes = () => {
   const Award_Index = lazy(() => import('../modules/awards/components/index'))
   const Award_Categories_Index = lazy(() => import('../modules/award-category/components/index'));
-
+  const Judges_Index = lazy(() => import('../modules/judges/components/index'));
   if (isTokenExpired()) {
     // Redirect to login if the token is expired
     return <Navigate to="/login" />

@@ -47,5 +47,8 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
 
 
         Route::resource('judges', 'JudgesController');
+        Route::group(['controller' => 'JudgesController'], function () {
+            Route::post('judges-multiple-delete', 'multipleDelete')->name('judges-multiple-delete');
+        });
     }); 
 });

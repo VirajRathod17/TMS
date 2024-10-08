@@ -224,4 +224,32 @@ class JudgesController extends Controller
             return response()->json($this->responseData);
         }
     }
+
+
+    public function multipleDelete(Request $request)
+    {
+        $judges = $request->ids;
+        if($judges)
+        {
+            foreach($judges as $id)
+            {
+                $judges = $this->modelObj::find($id);
+                if($judges)
+                {
+                    $judges->delete();
+                }
+            }
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = "Judges deleted successfully";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+        else
+        {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = "Judges not found";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+    }
 }
