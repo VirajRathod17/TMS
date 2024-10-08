@@ -32,6 +32,12 @@ export function AsideMenuMain() {
         title='Media Partner'
         fontIcon='bi-app-indicator'
       />
+      <AsideMenuItem
+        to='/news'
+        icon='/media/icons/duotune/art/art002.svg'
+        title='News'
+        fontIcon='bi-app-indicator'
+      />
     </>
   )
 }
