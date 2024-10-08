@@ -135,6 +135,12 @@ class AwardCategoryController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        echo '<pre>';
+            print_r($request->all());
+            echo '</pre>';
+        exit();
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|max:255',
             'description' => 'required',

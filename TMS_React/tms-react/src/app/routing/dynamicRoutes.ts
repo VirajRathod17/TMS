@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 
-const modules = ['awards', 'award-category'];
+const modules = ['awards', 'award-category', 'supporting-association'];
 
 export const dynamicRoutes = modules.flatMap((module) => {
   const routes = [

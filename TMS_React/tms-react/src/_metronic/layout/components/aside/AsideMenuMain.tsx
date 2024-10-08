@@ -61,7 +61,7 @@ const handleAwardChange = async (event: React.ChangeEvent<HTMLSelectElement>) =>
         to='/dashboard'
         icon='/media/icons/duotune/art/art002.svg'
         title='Dashboard'
-        fontIcon='bi-app-indicator'
+        fontIcon='bi-app-indicator' 
       />
       <AsideMenuItem
         to='/awards'
@@ -80,6 +80,12 @@ const handleAwardChange = async (event: React.ChangeEvent<HTMLSelectElement>) =>
         title='Sponsers'
         fontIcon='bi-app-indicator'
       /> */}
+      <AsideMenuItem
+        to='/supporting-association'
+        icon='/media/icons/duotune/art/art002.svg'
+        title='Supporting Association'
+        fontIcon='bi-app-indicator'
+      />
     </>
   )
 }

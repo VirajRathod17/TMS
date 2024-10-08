@@ -109,7 +109,7 @@ class AwardController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
+    {        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100',
             'year' => 'required|string|min:4|max:4',
