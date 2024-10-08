@@ -5,7 +5,7 @@ import {PageTitle} from '../../../_metronic/layout/core'
 
 const DashboardPage: FC = () => (
   <>
-    <h1>Hello</h1> {/* Add your content here */}
+    <h1>Hello</h1>
   </>
 )
 
