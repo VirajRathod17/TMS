@@ -249,12 +249,8 @@ const Form: React.FC<FormProps> = ({
                         )}
                       </div>
 
-<<<<<<< Updated upstream
 
                       <div className="col-md-12 fv-row">
-=======
-                      <div className="col-md-8 fv-row">
->>>>>>> Stashed changes
                         <label className="form-label manager-code">Description</label>
                         <ReactQuill
                           theme="snow"
@@ -263,11 +259,7 @@ const Form: React.FC<FormProps> = ({
                           onBlur={formik.handleBlur}
                           modules={{
                             toolbar: [
-<<<<<<< Updated upstream
                               [{ header: [1, 2, false] }],
-=======
-                              [{ header: [1, 4, false] }],
->>>>>>> Stashed changes
                               ['bold', 'italic', 'underline'],
                               ['link', 'image'],
                               ['clean'], // remove formatting button
@@ -279,10 +271,6 @@ const Form: React.FC<FormProps> = ({
                           <span className="text-danger">{formik.errors.description}</span>
                         )}
                       </div>
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
                     </div>
 
                     <div className="d-flex justify-content-end">
