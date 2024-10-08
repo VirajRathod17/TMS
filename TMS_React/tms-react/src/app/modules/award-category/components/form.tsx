@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useFormik, FormikErrors } from 'formik';
+import React, { useEffect, useState } from 'react';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import '../../include/loader.css';
 import Loader from '../../include/loader';
+import '../../include/loader.css';
 
 // Define the types for the props
 interface FormProps {
@@ -23,7 +23,7 @@ interface FormProps {
   pageTitle: string;
 }
 
-// The Form component with proper types
+// The Form component
 const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
           });
         }
       } catch (error) {
-        console.log('Error submitting form:', error);
+        console.error('Error submitting form:', error);
       } finally {
         setLoading(false); 
       }
@@ -137,9 +137,27 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           <option value="0">Sponsor 1</option>
                           <option value="1">Sponsor 2</option>
                         </select>
-                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id ? (
-                          <span className="text-danger">{formik.errors.main_sponsored_id as string}</span>
-                        ) : null}
+                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id && (
+                          <span className="text-danger">{formik.errors.main_sponsored_id}</span>
+                        )}
+                      </div>
+
+                      <div className="col-md-4 fv-row">
+                        <label className="required form-label manager-code">Main Sponsor</label>
+                        <select
+                          name="main_sponsored_id"
+                          className="form-control mb-2"
+                          value={formik.values.main_sponsored_id}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                        >
+                          <option value="">Select Main Sponsor</option>
+                          <option value="0">Sponsor 1</option>
+                          <option value="1">Sponsor 2</option>
+                        </select>
+                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id && (
+                          <span className="text-danger">{formik.errors.main_sponsored_id}</span>
+                        )}
                       </div>
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Status</label>
@@ -154,9 +172,9 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           <option value="1">Active</option>
                           <option value="0">Inactive</option>
                         </select>
-                        {formik.touched.status && formik.errors.status ? (
-                          <span className="text-danger">{formik.errors.status as string}</span>
-                        ) : null}
+                        {formik.touched.status && formik.errors.status && (
+                          <span className="text-danger">{formik.errors.status}</span>
+                        )}
                       </div>
                       <div className="col-md-8 fv-row">
                         <label className="required form-label manager-code">Description</label>
@@ -168,9 +186,9 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
                         />
-                        {formik.touched.description && formik.errors.description ? (
-                          <span className="text-danger">{formik.errors.description as string}</span>
-                        ) : null}
+                        {formik.touched.description && formik.errors.description && (
+                          <span className="text-danger">{formik.errors.description}</span>
+                        )}
                       </div>
                     </div>
                   </div>
