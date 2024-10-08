@@ -5,6 +5,8 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Loader from '../../include/loader';
+import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import ReactQuill from 'react-quill'; // Import ReactQuill
 import '../../include/loader.css';
 
 interface FormProps {
@@ -14,7 +16,7 @@ interface FormProps {
   redirectUrl: string;
   successMessage: string;
   pageTitle: string;
-  oldImageUrl?: string; // Add this prop to hold the old image URL
+  oldImageUrl?: string; // Prop to hold the old image URL
 }
 
 type FormValues = {
@@ -22,7 +24,7 @@ type FormValues = {
   image: File | null;
   award_id: string;
   website_link: string;
-  description?: string;
+  description?: string; // This will hold HTML content
   status: string;
 };
 
@@ -36,7 +38,7 @@ const Form: React.FC<FormProps> = ({
   oldImageUrl, // Receive the old image URL
 }) => {
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(oldImageUrl || null); // Set initial preview to old image URL
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const formik = useFormik<FormValues>({
@@ -46,30 +48,39 @@ const Form: React.FC<FormProps> = ({
       image: Yup.mixed().required('Image is required'),
       award_id: Yup.string().required('Year is required'),
       website_link: Yup.string().url('Invalid URL format').required('Website link is required'),
-      description: Yup.string().max(500, 'Description must be 500 characters or less'),
+      description: Yup.string().max(500, 'Description must be 500 characters or less'), // Validate HTML length if needed
       status: Yup.string().required('Status is required'),
     }),
+
     onSubmit: async (values) => {
       setLoading(true);
+    
       try {
         const token = localStorage.getItem('jwt_token');
+        const method = mode === 'edit' ? 'post' : 'post'; // Always use 'post' for this structure
+        const url = mode === 'edit' ? `${submitUrl}` : submitUrl;
+
         const formData = new FormData();
+        formData.append('name', values.name);
+        formData.append('website_link', values.website_link);
+        formData.append('award_id', values.award_id);
+        formData.append('status', values.status);
+        formData.append('description', values.description || '');
 
-        // Append all form values to FormData
-        Object.keys(values).forEach((key) => {
-          formData.append(key, values[key as keyof FormValues] as any);
-        });
+        if (mode === 'edit') {
+          formData.append('_method', 'PUT'); // Add _method for PUT
+        }
 
-        const method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
+        if (values.image) { // Check if an image file is provided
+          formData.append('image', values.image);
+        }
 
-        // Send the request
         const response = await axios({
           method: method,
-          url: submitUrl,
+          url: url,
           data: formData,
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
           },
         });
 
@@ -81,8 +92,7 @@ const Form: React.FC<FormProps> = ({
             confirmButtonText: 'OK',
           }).then(() => {
             navigate(redirectUrl);
-            formik.resetForm(); // Clear the form after successful submission
-            setImagePreview(null); // Clear the image preview
+            formik.resetForm();
           });
         } else {
           Swal.fire({
@@ -93,33 +103,7 @@ const Form: React.FC<FormProps> = ({
           });
         }
       } catch (error) {
-        console.error('Error submitting form:', error);
-
-        if (axios.isAxiosError(error)) {
-          if (error.response) {
-            const errorMessage = error.response.data.message || 'An unknown error occurred';
-            Swal.fire({
-              title: 'Error',
-              text: errorMessage,
-              icon: 'error',
-              confirmButtonText: 'OK',
-            });
-          } else {
-            Swal.fire({
-              title: 'Error',
-              text: 'No response received from the server. Please try again later.',
-              icon: 'error',
-              confirmButtonText: 'OK',
-            });
-          }
-        } else {
-          Swal.fire({
-            title: 'Error',
-            text: 'An unexpected error occurred. Please try again later.',
-            icon: 'error',
-            confirmButtonText: 'OK',
-          });
-        }
+        console.log('Error submitting form:', error);
       } finally {
         setLoading(false);
       }
@@ -141,11 +125,12 @@ const Form: React.FC<FormProps> = ({
 
   useEffect(() => {
     formik.setValues(initialValues);
-    // If oldImageUrl is provided, set it as the initial preview
-    if (oldImageUrl) {
+    
+    // Set the image preview based on the mode
+    if (mode === 'edit' && oldImageUrl) {
       setImagePreview(oldImageUrl);
     }
-  }, [initialValues, oldImageUrl]);
+  }, [initialValues, oldImageUrl, mode]);
 
   return (
     <>
@@ -186,6 +171,7 @@ const Form: React.FC<FormProps> = ({
                           type="file"
                           name="image"
                           className="form-control mb-2"
+                          accept="image/*"
                           onChange={handleFileChange}
                           onBlur={formik.handleBlur}
                           aria-label="Image"
@@ -194,8 +180,14 @@ const Form: React.FC<FormProps> = ({
                           <span className="text-danger">{formik.errors.image}</span>
                         )}
                         {imagePreview && (
-                          <div className="mt-2">
-                            <img src={imagePreview} alt="Preview" style={{ width: '100%', height: 'auto' }} />
+                          <div className="mt-3">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              width="100"
+                              height="100"
+                              style={{ objectFit: 'cover', borderRadius: '5px' }}
+                            />
                           </div>
                         )}
                       </div>
@@ -236,6 +228,28 @@ const Form: React.FC<FormProps> = ({
                         )}
                       </div>
 
+                      <div className="col-md-8 fv-row">
+                        <label className="form-label manager-code">Description</label>
+                        <ReactQuill
+                          theme="snow"
+                          value={formik.values.description}
+                          onChange={(content) => formik.setFieldValue('description', content)}
+                          onBlur={formik.handleBlur}
+                          modules={{
+                            toolbar: [
+                              [{ header: [1, 2, false] }],
+                              ['bold', 'italic', 'underline'],
+                              ['link', 'image'],
+                              ['clean'], // remove formatting button
+                            ],
+                          }}
+                          placeholder="Enter Description"
+                        />
+                        {formik.touched.description && formik.errors.description && (
+                          <span className="text-danger">{formik.errors.description}</span>
+                        )}
+                      </div>
+
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Status</label>
                         <select
@@ -247,34 +261,21 @@ const Form: React.FC<FormProps> = ({
                           aria-label="Status"
                         >
                           <option value="">Select Status</option>
-                          <option value="1">Active</option>
-                          <option value="0">Inactive</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
                         </select>
                         {formik.touched.status && formik.errors.status && (
                           <span className="text-danger">{formik.errors.status}</span>
                         )}
                       </div>
-
-                      <div className="col-md-8 fv-row">
-                        <label className="form-label manager-code">Description</label>
-                        <textarea
-                          name="description"
-                          className="form-control mb-2"
-                          placeholder="Enter Description"
-                          value={formik.values.description || ''}
-                          onChange={formik.handleChange}
-                          onBlur={formik.handleBlur}
-                          aria-label="Description"
-                        />
-                        {formik.touched.description && formik.errors.description && (
-                          <span className="text-danger">{formik.errors.description}</span>
-                        )}
-                      </div>
                     </div>
-                    <div className="d-flex justify-content-end py-4">
-                      <Link to={redirectUrl} className="btn btn-sm btn-flex bg-body btn-color-primary-700 btn-active-color-primary fw-bold me-5">Cancel</Link>
-                      <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? 'Submitting...' : 'Submit'}
+
+                    <div className="d-flex justify-content-end">
+                      <Link to={redirectUrl} className="btn btn-light btn-active-light-primary me-3">
+                        Cancel
+                      </Link>
+                      <button type="submit" className="btn btn-sm btn-flex btn-primary">
+                        Save
                       </button>
                     </div>
                   </form>
