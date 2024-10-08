@@ -8,7 +8,7 @@ import '../../include/loader.css';
 import DataTable from 'react-data-table-component';
 import Breadcrumb from '../../include/breadcrumbs';
 import Pagination from '../../include/pagination';
-import SearchForm from '../../include/searchForm';
+import SearchForm from './searchform';
 import useFetchAwards from './fetchAwards';
 
 
@@ -16,17 +16,21 @@ interface Award {
   id: number;
   name: string;
   year: string;
-  created_at: string;
+  // created_at: string;
 }
 
 const Index: React.FC = () => {
-  const { awards, loading, setAwards } = useFetchAwards();
+  const { awards, loading, setAwards, setLoading } = useFetchAwards();
   const [selectedAwards, setSelectedAwards] = useState<number[]>([]);
   const [isSelectAll, setIsSelectAll] = useState(false);
-  const [paginatedAwards, setPaginatedAwards] = useState<Award[]>([]);
+  const [filteredAwardCategories, setFilteredAwardCategories] = useState<Award[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchName, setSearchName] = useState<string>('');
+  const [searchYear, setSearchYear] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
   const pageTitle = 'Manage Award';
   const module = 'awards';
   const moduleTitle = 'Award';
@@ -34,6 +38,31 @@ const Index: React.FC = () => {
   useEffect(() => {
     document.title = pageTitle;
   }, [pageTitle]);
+
+
+  useEffect(() => {
+    const filterData = () => {
+      const filtered = awards.filter((award) => {
+        const matchesName = award.name.toLowerCase().includes(searchName.toLowerCase());
+        const matchesYear = award.year.toLowerCase().includes(searchYear.toLowerCase());
+        const matchesDateRange = (!fromDate || new Date(award.created_at) >= new Date(fromDate)) &&
+                                 (!toDate || new Date(award.created_at) <= new Date(toDate));
+  
+        return matchesName && matchesYear && matchesDateRange;
+      });
+  
+      setFilteredAwardCategories(filtered);
+    };
+  
+    filterData();
+  }, [searchName, searchYear, fromDate, toDate, awards]);
+
+  const paginatedData = filteredAwardCategories.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredAwardCategories.length / itemsPerPage);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
@@ -79,6 +108,20 @@ const Index: React.FC = () => {
   const handleItemsPerPageChange = (items: number) => {
     setItemsPerPage(items);
     setCurrentPage(1);
+  };
+
+  const handleSearch = ({ name, year, from_date, to_date }: { name: string; year: string; from_date: string; to_date: string }) => {
+    setSearchName(name);
+    setSearchYear(year);
+    setFromDate(from_date);
+    setToDate(to_date);
+  };
+
+  const handleReset = () => {
+    setSearchName('');
+    setSearchYear('');
+    setFromDate('');
+    setToDate('');
   };
 
   const deleteAward = (id: number) => {
@@ -264,7 +307,12 @@ const Index: React.FC = () => {
             <div id="kt_app_content_container" className="app-container">
               <div className="card card-flush mb-5">
                 <div className="card-body pt-6 pb-3">
-                  <SearchForm module={module} moduleTitle={moduleTitle} />
+                  <SearchForm 
+                    module={module} 
+                    moduleTitle={moduleTitle} 
+                    onSearch={handleSearch} 
+                    onReset={handleReset} 
+                  />
                 </div>
               </div>
               <div className="card card-flush mb-5">

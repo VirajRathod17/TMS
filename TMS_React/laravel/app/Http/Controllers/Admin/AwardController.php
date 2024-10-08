@@ -28,6 +28,12 @@ class AwardController extends Controller
 
         if(isset($awards))
         {
+
+            foreach($awards as $award)
+            {
+                $award->date = date('d-m-Y', strtotime($award->created_at));
+            }
+
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Award";
             $this->responseData['data'] = $awards;
