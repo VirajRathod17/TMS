@@ -58,11 +58,63 @@ function Index() {
         fetchJudges();
     }, []);
 
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            const allIds = judges.map((judge) => judge.id);
+            setSelectedIds(allIds);
+        } else {
+            setSelectedIds([]);
+        }
+    };
 
-
-   
+    const handleSelect = (id: number) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
+        );
+    };
       
+    const handleRemoveSelected = async () => {
+        const confirmed = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to delete the selected judges?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete them!',
+            cancelButtonText: 'No, cancel!',
+        });
 
+        if (confirmed.isConfirmed) {
+            const token = localStorage.getItem('jwt_token');
+            try {
+                const response = await axios.post(
+                    `${process.env.REACT_APP_API_BASE_URL}judges-multiple-delete`,
+                    { ids: selectedIds }, 
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`, 
+                        },
+                    }
+                );
+                if (response.data.status === 'success') {
+                    Swal.fire('Deleted!', 'Award categories have been deleted.', 'success');
+                    // Update the state to remove deleted categories
+                    setJudges((prevCategories) =>
+                        prevCategories.filter((judge) => !selectedIds.includes(judge.id))
+                    );
+                    setSelectedIds([]); 
+                } else {
+                    Swal.fire('Error!', response.data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting judges:', error);
+                Swal.fire('Error!', 'An error occurred while deleting the judges.', 'error');
+            }
+        } else {
+            Swal.fire('Cancelled', 'The selected judges were not deleted', 'error');
+        }
+    };
 
     const Delete = async (id: number) => {
         const token = localStorage.getItem('jwt_token');
@@ -103,25 +155,25 @@ function Index() {
 
 
     const columns = [
-        // {
-        //   name: <input className="form-check-input" type="checkbox" checked={selectedIds.length === awardCategories.length} onChange={handleSelectAll} />,
-        //   cell: (row: AwardCategory) => (
-        //     <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-        //       <input
-        //         className="form-check-input"
-        //         type="checkbox"
-        //         value={row.id.toString()}
-        //         checked={selectedIds.includes(row.id)}
-        //         onChange={() => handleSelect(row.id)}
-        //       />
-        //     </div>
-        //   ),
-        //   sortable: false,
-        //   ignoreRowClick: true,
-        //   allowOverflow: true,
-        //   button: false,
-        //   width: '70px',
-        // },
+        {
+          name: <input className="form-check-input" type="checkbox" checked={selectedIds.length === judges.length} onChange={handleSelectAll} />,
+          cell: (row: Judges) => (
+            <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                value={row.id.toString()}
+                checked={selectedIds.includes(row.id)}
+                onChange={() => handleSelect(row.id)}
+              />
+            </div>
+          ),
+          sortable: false,
+          ignoreRowClick: true,
+          allowOverflow: true,
+          button: false,
+          width: '70px',
+        },
         {
           name: 'ID',
           selector: (row: Judges) => row.id,
@@ -245,7 +297,7 @@ function Index() {
                               <div className="fw-bold me-5">
                                 <span className="me-2">{selectedIds.length}</span> Selected
                               </div>
-                              <button type="button" className="btn btn-danger me-3">
+                              <button type="button" className="btn btn-danger me-3" onClick={handleRemoveSelected}>
                                 Remove Selected
                               </button>
                             </div>
