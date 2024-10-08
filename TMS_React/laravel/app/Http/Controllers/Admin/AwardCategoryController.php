@@ -112,7 +112,7 @@ class AwardCategoryController extends Controller
     public function show($id)
     {
         $awardCategory = AwardCategory::find($id);
-
+        $award = Award::find($awardCategory->award_id);
         if(isset($awardCategory))
         {
             if($awardCategory->credentials)
@@ -122,6 +122,7 @@ class AwardCategoryController extends Controller
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Award Category";
             $this->responseData['data'] = $awardCategory;
+            $this->responseData['award'] = $award->name;
             return response()->json($this->responseData);
         }
         else

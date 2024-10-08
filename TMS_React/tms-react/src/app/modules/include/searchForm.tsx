@@ -47,11 +47,14 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch,o
 
     const handleReset = () => {
         // Reset all state variables
-        setName('');
-        setAwardCategoryStatus('');
-        setFromDate('');
-        setToDate('');
-        onReset();
+
+        if(module === 'award-category'){
+            setName('');
+            setAwardCategoryStatus('');
+        }
+            setFromDate('');
+            setToDate('');
+            onReset();
     };
 
     return (

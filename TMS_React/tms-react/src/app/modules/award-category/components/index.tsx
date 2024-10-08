@@ -10,7 +10,7 @@ import SearchForm from '../../include/searchForm';
 import DataTable from 'react-data-table-component';
 import Pagination from '../../include/pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPenToSquare, faTrash , faEye } from '@fortawesome/free-solid-svg-icons';
 import { Badge } from 'react-bootstrap';
 
 interface AwardCategory {
@@ -212,7 +212,7 @@ function Index() {
           ignoreRowClick: true,
           allowOverflow: true,
           button: false,
-          width: '80px',
+          width: '70px',
         },
         {
           name: 'ID',
@@ -224,7 +224,7 @@ function Index() {
           name: 'Date',
           selector: (row: AwardCategory) => row.date,
           sortable: true,
-          width: '200px',
+          width: '130px',
         },
         {
           name: 'Name',
@@ -236,7 +236,7 @@ function Index() {
           name: 'Award ID',
           selector: (row: AwardCategory) => row.award_id,
           sortable: true,
-          width: '200px',
+          width: '150px',
         },
         {
           name: 'Main Sponsored ID',
@@ -258,6 +258,9 @@ function Index() {
           cell: (row: AwardCategory) => (
             <>
               <div className="text-end">
+                <Link to={`/award-category/view/${row.id}`} className="btn btn-sm btn-primary me-2">
+                  <FontAwesomeIcon icon={faEye} />
+                </Link>
                 <Link to={`/award-category/edit/${row.id}`} className="btn btn-sm btn-info me-2">
                    <FontAwesomeIcon icon={faPenToSquare} />
                 </Link>
@@ -267,6 +270,7 @@ function Index() {
               </div>
             </>
           ),
+          width: '290px',
           style: {
               display: 'flex',
               justifyContent: 'flex-end',

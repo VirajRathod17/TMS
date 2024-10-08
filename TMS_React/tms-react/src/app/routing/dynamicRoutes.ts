@@ -16,6 +16,10 @@ export const dynamicRoutes = modules.flatMap((module) => {
       path: `/${module}/edit/:id`,
       component: lazy(() => import(`../modules/${module}/components/edit`)),
     },
+    {
+      path: `/${module}/view/:id`,
+      component: lazy(() => import(`../modules/${module}/components/view`)),
+    },
   ];
   return routes;
 });

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Str;
 class Judges extends Model
 {
     use HasFactory;
@@ -46,20 +46,18 @@ class Judges extends Model
      * @param string|null $size The size of the image (optional).
      * @return string The generated image path.
      */
-    // public static function getJudgesImage($id = 0, $img_name = '', $size = null)
-    // {
-    //     if ($id > 0 && $img_name != '') {
-    //         if ($size) {
-    //             $image = asset('Admin/uploads/judges/' . $id . '/thumb_' . $size . '_' . $img_name);
-    //         } else {
-    //             $image = asset('Admin/uploads/judges/' . $id . '/' . $img_name);
-    //         }
-    //     } else {
-    //         $image = asset('Admin/uploads/noimg.png');
-    //     }
+    public static function getJudgesImage($id = 0, $img_name = '', $size = null)
+    {
+        if ($id > 0 && $img_name != '') {
+           
+            $image = url('/admin/uploads/judges/' . $id . '/' . $img_name);
+          
+        } else {
+            $image =  url('/admin/images/noimg.png');
+        }
 
-    //     return $image;
-    // }
+        return $image;
+    }
     /**
      * Generate a unique slug.
      *
