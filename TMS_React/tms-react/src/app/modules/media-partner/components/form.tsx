@@ -228,7 +228,29 @@ const Form: React.FC<FormProps> = ({
                         )}
                       </div>
 
-                      <div className="col-md-8 fv-row">
+                     
+
+                      <div className="col-md-4 fv-row">
+                        <label className="required form-label manager-code">Status</label>
+                        <select
+                          name="status"
+                          className="form-control mb-2"
+                          value={formik.values.status}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          aria-label="Status"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                        {formik.touched.status && formik.errors.status && (
+                          <span className="text-danger">{formik.errors.status}</span>
+                        )}
+                      </div>
+
+
+                      <div className="col-md-12 fv-row">
                         <label className="form-label manager-code">Description</label>
                         <ReactQuill
                           theme="snow"
@@ -247,25 +269,6 @@ const Form: React.FC<FormProps> = ({
                         />
                         {formik.touched.description && formik.errors.description && (
                           <span className="text-danger">{formik.errors.description}</span>
-                        )}
-                      </div>
-
-                      <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Status</label>
-                        <select
-                          name="status"
-                          className="form-control mb-2"
-                          value={formik.values.status}
-                          onChange={formik.handleChange}
-                          onBlur={formik.handleBlur}
-                          aria-label="Status"
-                        >
-                          <option value="">Select Status</option>
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                        </select>
-                        {formik.touched.status && formik.errors.status && (
-                          <span className="text-danger">{formik.errors.status}</span>
                         )}
                       </div>
                     </div>
