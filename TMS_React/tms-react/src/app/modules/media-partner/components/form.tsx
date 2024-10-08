@@ -54,7 +54,7 @@ const Form: React.FC<FormProps> = ({
 
     onSubmit: async (values) => {
       setLoading(true);
-    
+
       try {
         const token = localStorage.getItem('jwt_token');
         const method = mode === 'edit' ? 'post' : 'post'; // Always use 'post' for this structure
@@ -125,7 +125,7 @@ const Form: React.FC<FormProps> = ({
 
   useEffect(() => {
     formik.setValues(initialValues);
-    
+
     // Set the image preview based on the mode
     if (mode === 'edit' && oldImageUrl) {
       setImagePreview(oldImageUrl);
@@ -228,7 +228,7 @@ const Form: React.FC<FormProps> = ({
                         )}
                       </div>
 
-                     
+
 
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Status</label>
@@ -238,38 +238,40 @@ const Form: React.FC<FormProps> = ({
                           value={formik.values.status}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          aria-label="Status"
                         >
                           <option value="">Select Status</option>
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
+                          <option value="1">Active</option>
+                          <option value="0">Inactive</option>
                         </select>
                         {formik.touched.status && formik.errors.status && (
                           <span className="text-danger">{formik.errors.status}</span>
                         )}
                       </div>
 
+                      <div className="col-md-8 fv-row">
 
-                      <div className="col-md-12 fv-row">
-                        <label className="form-label manager-code">Description</label>
-                        <ReactQuill
-                          theme="snow"
-                          value={formik.values.description}
-                          onChange={(content) => formik.setFieldValue('description', content)}
-                          onBlur={formik.handleBlur}
-                          modules={{
-                            toolbar: [
-                              [{ header: [1, 2, false] }],
-                              ['bold', 'italic', 'underline'],
-                              ['link', 'image'],
-                              ['clean'], // remove formatting button
-                            ],
-                          }}
-                          placeholder="Enter Description"
-                        />
-                        {formik.touched.description && formik.errors.description && (
-                          <span className="text-danger">{formik.errors.description}</span>
-                        )}
+                        <div className="col-md-12 fv-row">
+                          <label className="form-label manager-code">Description</label>
+                          <ReactQuill
+                            theme="snow"
+                            value={formik.values.description}
+                            onChange={(content) => formik.setFieldValue('description', content)}
+                            onBlur={formik.handleBlur}
+                            modules={{
+                              toolbar: [
+                                [{ header: [1, 4, false] }],
+                                [{ header: [1, 2, false] }],
+                                ['bold', 'italic', 'underline'],
+                                ['link', 'image'],
+                                ['clean'], // remove formatting button
+                              ],
+                            }}
+                            placeholder="Enter Description"
+                          />
+                          {formik.touched.description && formik.errors.description && (
+                            <span className="text-danger">{formik.errors.description}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
 

@@ -53,7 +53,7 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
 
         Route::resource('media-partner', 'MediaPartnerController');
         Route::group(['controller' => 'MediaPartnerController'], function () {
-            Route::delete('/media-partner-delete-multiple', 'multipleDelete')->name('media-partner-delete-multiple-datatable');
+            Route::delete('/media-partner-delete-multiple', 'deleteMultiple')->name('media-partner-delete-multiple-datatable');
 
         });
     }); 
