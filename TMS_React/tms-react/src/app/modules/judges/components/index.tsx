@@ -19,6 +19,7 @@ interface Judges {
     name: string;
     award_id: number;
     status: string; 
+    post: string;
 }
 
 function Index() {
@@ -57,6 +58,15 @@ function Index() {
 
         fetchJudges();
     }, []);
+
+
+     // Paginate the filtered data
+     const paginatedData = judges.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const totalPages = Math.ceil(judges.length / itemsPerPage);
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -199,6 +209,12 @@ function Index() {
           width: '150px',
         },
         {
+            name: 'Post',
+            selector: (row: Judges) => row.post,
+            sortable: true,
+            width: '200px',
+          },
+        {
           name: 'Status',
           cell: (row: Judges) => 
             row.status === 'Active' 
@@ -306,12 +322,12 @@ function Index() {
                     </div>
                     <DataTable
                         columns={columns}
-                        data={judges}
+                        data={paginatedData}
                         customStyles={customStyles}
                         pagination={false}
                         noDataComponent="No Judges found"
                     />
-                    {/* {!loading && (
+                    {!loading && (
                           <Pagination
                               totalPages={totalPages}
                               currentPage={currentPage}
@@ -319,7 +335,7 @@ function Index() {
                               itemsPerPage={itemsPerPage}
                               onItemsPerPageChange={setItemsPerPage}
                           />
-                      )} */}
+                      )}
                   </div>
                 </div>
               </div>
