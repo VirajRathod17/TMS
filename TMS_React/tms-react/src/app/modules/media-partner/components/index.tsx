@@ -1,264 +1,281 @@
 import React, { useEffect, useState } from 'react';
-import '../../include/loader.css';
-import Loader from '../../include/loader';
-import Breadcrumb from '../../include/breadcrumbs';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Helmet } from 'react-helmet';
-import SearchForm from '../../include/searchForm';
+import Loader from '../../include/loader';
+import '../../include/loader.css';
+import DataTable from 'react-data-table-component';
+import Breadcrumb from '../../include/breadcrumbs';
+import Pagination from '../../include/pagination';
+import useFetchMediaPartners from './fatchmedia-partner';
 
 interface MediaPartner {
-    id: number;
-    name: string; // This field is kept as 'name'
-    image: string; // Changed from 'image' to 'image'
-    award_id: number; // Changed from 'award_id' to 'awardId'
-    status: string;
-    date: string;
-    awardYear: string; // Changed from 'award_year' to 'awardYear'
+  id: number;
+  name: string;
+  image: string;
+  award_id: number;
+  status: string;
+  date: string;
 }
 
-function Index() {
-    const [mediapartner, setmediapartner] = useState<MediaPartner[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const pageTitle = 'Manage Media Partner';
-    const module = 'media-partner';
-    const moduleTitle = 'Media Partner';
+const Index: React.FC = () => {
+  const { mediaPartners, loading, setMediaPartners } = useFetchMediaPartners();
+  const [selectedMediaPartners, setSelectedMediaPartners] = useState<number[]>([]);
+  const [isSelectAll, setIsSelectAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageTitle = 'Manage Media Partners';
+  const module = 'media-partner';
+  const moduleTitle = 'Media Partner';
 
-    useEffect(() => {
-        document.title = pageTitle;
-    }, [pageTitle]);
+  useEffect(() => {
+    document.title = pageTitle;
+    setTotalPages(Math.ceil(mediaPartners.length / itemsPerPage));
+  }, [pageTitle, mediaPartners, itemsPerPage]);
 
-    useEffect(() => {
-        const fetchmediapartner = async () => {
-            try {
-                const token = localStorage.getItem('jwt_token');
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_BASE_URL}media-partner`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                setmediapartner(response.data.data);
-            } catch (error) {
-                console.error('Error fetching Media Partner:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const mediaPartnerId = parseInt(e.target.value, 10);
+    setSelectedMediaPartners((prev) => 
+      e.target.checked ? [...prev, mediaPartnerId] : prev.filter((id) => id !== mediaPartnerId)
+    );
+  };
 
-        fetchmediapartner();
-    }, []);
+  const handleSelectAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked;
+    setIsSelectAll(checked);
+    setSelectedMediaPartners(checked ? mediaPartners.map((partner) => partner.id) : []);
+  };
 
-    const breadcrumbs = [{ label: 'Manage Media Partner', url: '' }];
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`;
+  };
 
-    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.checked) {
-            const allIds = mediapartner.map((data) => data.id);
-            setSelectedIds(allIds);
-        } else {
-            setSelectedIds([]);
-        }
-    };
+  const currentMediaPartners = mediaPartners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-    const handleSelect = (id: number) => {
-        setSelectedIds((prev) =>
-            prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
-        );
-    };
+  const handlePageChange = (page: number) => setCurrentPage(page);
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1);
+  };
 
-    const handleRemoveSelected = async () => {
-        if (selectedIds.length === 0) {
-            Swal.fire('No selection!', 'Please select at least one item to delete.', 'info');
-            return;
-        }
-
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: `You will delete ${selectedIds.length} item(s)!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete them!',
+  const deleteMediaPartner = async (id: number) => {
+    const token = localStorage.getItem('jwt_token');
+    const confirmed = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you really want to delete this Media Partner?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    });
+  
+    if (confirmed.isConfirmed) {
+      try {
+        const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+        Swal.fire('Deleted!', response.data.message, 'success');
+        setMediaPartners((prev) => prev.filter((partner) => partner.id !== id));
+      } catch (error) {
+        console.error('Error deleting Media Partner:', error);
+        Swal.fire('Error!', 'There was an error deleting the media partner.', 'error');
+      }
+    }
+  };
+  
 
-        if (result.isConfirmed) {
-            try {
-                const token = localStorage.getItem('jwt_token');
-
-                for (const id of selectedIds) {
-                    await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner/${id}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                }
-
-                Swal.fire('Deleted!', 'Selected items have been deleted.', 'success');
-
-                setmediapartner((prevCategories) =>
-                    prevCategories.filter((data) => !selectedIds.includes(data.id))
-                );
-
-                setSelectedIds([]);
-            } catch (error) {
-                Swal.fire('Error!', 'There was a problem deleting the selected media partners.', 'error');
-                console.error('Error deleting Media Partners:', error);
-            }
-        }
-    };
-
-    const Delete = async (id: number) => {
-        const result = await Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        });
-
-        if (result.isConfirmed) {
-            try {
-                const token = localStorage.getItem('jwt_token');
-                await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-
-                Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
-
-                setmediapartner((prevCategories) => prevCategories.filter((data) => data.id !== id));
-            } catch (error) {
-                Swal.fire('Error!', 'There was a problem deleting the media partner.', 'error');
-                console.error('Error deleting Media Partner:', error);
-            }
-        }
-    };
-
-    if (loading) {
-        return <Loader />;
+const deleteMultiple = async () => {
+    if (selectedMediaPartners.length === 0) {
+        Swal.fire('No media partners selected', 'Please select media partners to delete.', 'warning');
+        return;
     }
 
-    return (
-        <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
-            <Helmet>
-                <title>{pageTitle ? pageTitle : ''}</title>
-            </Helmet>
-            <div className="d-flex flex-column flex-column-fluid">
-                <div id="kt_app_toolbar" className="app-toolbar mb-5">
-                    <Breadcrumb breadcrumbs={breadcrumbs} />
-                </div>
-                <div id="kt_app_content" className="app-content flex-column-fluid">
-                    <div id="kt_app_content_container" className="app-container">
-                        <div className="card card-flush mb-5">
-                            <div className="card-body pt-6 pb-3">
-                                <SearchForm module={module} moduleTitle={moduleTitle} />
-                            </div>
-                        </div>
-                        <div className="card card-flush mb-5">
-                            <div className="card-body pt-5">
-                                <div className="d-flex flex-stack mb-5">
-                                    <div className="d-flex align-items-center position-relative my-1">
-                                        <h2 className="mb-0">{pageTitle ? pageTitle : ''}</h2>
-                                    </div>
-                                    <div className="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
-                                        {selectedIds.length > 0 && (
-                                            <button
-                                                className="btn btn-danger me-2"
-                                                onClick={handleRemoveSelected}
-                                            >
-                                                Delete Selected
-                                            </button>
-                                        )}
-                                        <Link to="/media-partner/create" className="btn btn-primary" style={{ marginLeft: '10px' }}>
-                                            Add
-                                        </Link>
-                                    </div>
-                                </div>
-                                <table id="kt_datatable_example_1" className="table align-middle table-row-dashed fs-6 gy-5">
-                                    <thead>
-                                        <tr className="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
-                                            <th className="w-10px pe-2">
-                                                <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                                    <input
-                                                        className="form-check-input"
-                                                        type="checkbox"
-                                                        onChange={handleSelectAll}
-                                                    />
-                                                </div>
-                                            </th>
-                                            <th>ID</th>
-                                            <th>Date</th>
-                                            <th>Name</th>
-                                            <th>Image</th>
-                                            <th>Award Year</th> {/* Updated from Award Year to Award ID */}
-                                            <th>Status</th>
-                                            <th className="text-end min-w-100px">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-gray-600 fw-semibold">
-                                        {mediapartner.map((data) => (
-                                            <tr key={data.id}>
-                                                <td>
-                                                    <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                                        <input
-                                                            className="form-check-input"
-                                                            type="checkbox"
-                                                            checked={selectedIds.includes(data.id)}
-                                                            onChange={() => handleSelect(data.id)}
-                                                        />
-                                                    </div>
-                                                </td>
-                                                <td>{data.id}</td>
-                                                <td>{new Date(data.date).toLocaleDateString()}</td>
-                                                <td>{data.name}</td>
-                                                <td>
-                                                    {data.image && ( // Updated from 'image' to 'image'
-                                                        <img
-                                                            src={data.image}
-                                                            alt="image"
-                                                            style={{ width: '50px', height: '50px' }}
-                                                        />
-                                                    )}
-                                                </td>
-                                                <td>{data.award_id}</td>
-                                                <td>
-                                                    <span
-                                                        className={`badge badge-${data.status === 'Inactive' ? 'light-danger' : 'light-success'
-                                                            }`}
-                                                    >
-                                                        {data.status}
-                                                    </span>
-                                                </td>
-                                                <td className="text-end">
-                                                    <Link to={`/media-partner/edit/${data.id}`} className="btn btn-sm btn-light me-1">
-                                                        Edit
-                                                    </Link>
-                                                    <button
-                                                        className="btn btn-sm btn-danger"
-                                                        onClick={() => Delete(data.id)}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    const confirmed = await Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete selected media partners.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete them!',
+    });
+
+    if (confirmed.isConfirmed) {
+        const token = localStorage.getItem('jwt_token');
+        try {
+            const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner-delete-multiple`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                data: { ids: selectedMediaPartners },
+            });
+            
+            Swal.fire('Deleted!', response.data.message, 'success');
+            setMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id)));
+            setSelectedMediaPartners([]);
+            setIsSelectAll(false);
+        } catch (error) {
+            console.error('Error deleting media partners:', error);
+            Swal.fire('Error!', 'There was an error deleting the media partners.', 'error');
+        }
+    }
+};
+  const breadcrumbs = [{ label: 'Manage Media Partners', url: '' }];
+
+  const columns = [
+    {
+      name: <input className="form-check-input" type="checkbox" checked={isSelectAll} onChange={handleSelectAllChange} />,
+      cell: (row: MediaPartner) => (
+        <input
+          className="form-check-input"
+          type="checkbox"
+          value={row.id.toString()}
+          checked={selectedMediaPartners.includes(row.id)}
+          onChange={handleCheckboxChange}
+        />
+      ),
+      sortable: false,
+      width: '80px',
+    },
+    {
+      name: 'ID',
+      selector: (row: MediaPartner) => row.id,
+      sortable: true,
+      width: '80px',
+    },
+    {
+      name: 'Name',
+      selector: (row: MediaPartner) => row.name,
+      sortable: true,
+      width: '200px',
+    },
+    {
+      name: 'Image',
+      cell: (row: MediaPartner) => <img src={row.image} alt={row.name} style={{ width: '50px', height: '50px' }} />,
+      sortable: false,
+      width: '100px',
+    },
+    {
+      name: 'Status',
+      selector: (row: MediaPartner) => row.status,
+      sortable: true,
+      width: '150px',
+    },
+    {
+      name: 'Date',
+      selector: (row: MediaPartner) => formatDate(row.date),
+      sortable: true,
+      width: '150px',
+    },
+    {
+      name: 'Action',
+      cell: (row: MediaPartner) => (
+        <>
+          <Link to={`/media-partner/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
+            <i className="fas fa-edit"></i>
+          </Link>
+          <button onClick={() => deleteMediaPartner(row.id)} className="btn-danger btn btn-sm btn-icon btn-light">
+            <i className="fas fa-trash"></i>
+          </button>
+        </>
+      ),
+      style: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+      },
+    },
+  ];
+
+  const customStyles = {
+    rows: {
+      style: {
+        minHeight: '72px',
+        borderBottom: '#dee2e6',
+      },
+    },
+    headCells: {
+      style: {
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        fontWeight: 'bold',
+        fontSize: '1rem',
+        color: '#495057',
+      },
+    },
+    cells: {
+      style: {
+        paddingLeft: '16px',
+        paddingRight: '16px',
+        fontSize: '0.875rem',
+        color: '#212529',
+      },
+    },
+  };
+
+  if (loading) {
+    return <Loader />;
+  }
+
+  return (
+    <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
+      <Helmet>
+        <title>{pageTitle ? pageTitle : ''}</title>
+      </Helmet>
+      <div className="d-flex flex-column flex-column-fluid">
+        <div id="kt_app_toolbar" className="app-toolbar mb-5">
+          <Breadcrumb breadcrumbs={breadcrumbs} />
         </div>
-    );
-}
+        <div id="kt_app_content" className="app-content flex-column-fluid">
+          <div id="kt_app_content_container" className="app-container">
+            <div className="card card-flush mb-5">
+              <div className="card-body pt-5">
+                <div className="d-flex justify-content-between align-items-center mb-5">
+                  <h2 className="mb-0">{pageTitle}</h2>
+                  {selectedMediaPartners.length === 0 ? (
+                    <Link to="/media-partner/create" className="btn btn-primary">
+                      Add
+                    </Link>
+                  ) : (
+                    <div className="d-flex align-items-center">
+                      <button className="btn btn-danger me-2" onClick={deleteMultiple}>
+                        Delete Selected
+                      </button>
+                      <button className="btn btn-light" onClick={() => setSelectedMediaPartners([])}>
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <DataTable
+                  columns={columns}
+                  data={currentMediaPartners}
+                  
+                  
+                  paginationTotalRows={mediaPartners.length}
+                  onChangePage={handlePageChange}
+                  onChangeRowsPerPage={handleItemsPerPageChange}
+                  customStyles={customStyles}
+                />
+               <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        itemsPerPage={itemsPerPage}
+                        onItemsPerPageChange={handleItemsPerPageChange}
+                      />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default Index;

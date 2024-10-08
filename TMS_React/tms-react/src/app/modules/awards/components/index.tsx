@@ -264,7 +264,7 @@ const Index: React.FC = () => {
             <div id="kt_app_content_container" className="app-container">
               <div className="card card-flush mb-5">
                 <div className="card-body pt-6 pb-3">
-                  <SearchForm module={module} moduleTitle={moduleTitle} />
+                  {/* <SearchForm module={module} moduleTitle={moduleTitle} /> */}
                 </div>
               </div>
               <div className="card card-flush mb-5">

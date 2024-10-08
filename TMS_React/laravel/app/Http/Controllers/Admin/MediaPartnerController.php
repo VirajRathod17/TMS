@@ -192,7 +192,6 @@ class MediaPartnerController extends Controller
         ]);
     }
 
-    // Delete a specific Media Partner
     public function destroy($id)
     {
         $mediaPartner = MediaPartner::find($id);
@@ -201,35 +200,59 @@ class MediaPartnerController extends Controller
             if ($mediaPartner->image && file_exists(public_path($mediaPartner->image))) {
                 unlink(public_path($mediaPartner->image));
             }
-
+    
             // Delete the folder if exists
             $folderPath = 'admin/uploads/media-partners/' . $mediaPartner->id;
             if (is_dir(public_path($folderPath))) {
-                rmdir(public_path($folderPath));
+                $this->deleteDirectory(public_path($folderPath)); // Use the helper function to delete the folder contents
             }
-
+    
             // Delete the media partner record
             $mediaPartner->delete();
-
+    
             return response()->json([
                 'status' => 'success',
                 'message' => "Media Partner deleted successfully",
                 'data' => [],
             ]);
         }
-
+    
         return response()->json([
             'status' => 'error',
             'message' => "Media Partner not found",
             'data' => [],
         ]);
     }
-
-    // Delete multiple Media Partners
-    public function multipleDelete(Request $request)
+    
+    // Helper function to delete a directory and its contents
+    private function deleteDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return false; // Return false if the directory doesn't exist
+        }
+    
+        // Get all files and directories in the specified directory
+        $files = array_diff(scandir($dir), ['.', '..']); // Exclude '.' and '..'
+    
+        foreach ($files as $file) {
+            $path = "$dir/$file"; // Construct the path
+            if (is_dir($path)) {
+                // If it's a directory, recursively call deleteDirectory
+                $this->deleteDirectory($path);
+            } else {
+                // If it's a file, delete it
+                unlink($path);
+            }
+        }
+    
+        // Finally, remove the directory itself
+        return rmdir($dir);
+    }
+    
+    public function deleteMultiple(Request $request)
     {
         $mediaPartnerIds = $request->ids;
-
+    
         if ($mediaPartnerIds) {
             foreach ($mediaPartnerIds as $id) {
                 $mediaPartner = MediaPartner::find($id);
@@ -238,29 +261,30 @@ class MediaPartnerController extends Controller
                     if ($mediaPartner->image && file_exists(public_path($mediaPartner->image))) {
                         unlink(public_path($mediaPartner->image));
                     }
-
+    
                     // Delete the folder
                     $folderPath = 'admin/uploads/media-partners/' . $mediaPartner->id;
                     if (is_dir(public_path($folderPath))) {
                         rmdir(public_path($folderPath));
                     }
-
+    
                     // Delete the media partner record
                     $mediaPartner->delete();
                 }
             }
-
+    
             return response()->json([
                 'status' => 'success',
                 'message' => "Media Partners deleted successfully",
                 'data' => [],
             ]);
         }
-
+    
         return response()->json([
             'status' => 'error',
             'message' => "Media Partners not found",
             'data' => [],
         ]);
     }
+    
 }

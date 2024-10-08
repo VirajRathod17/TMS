@@ -238,23 +238,17 @@ const Form: React.FC<FormProps> = ({
                           value={formik.values.status}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          aria-label="Status"
                         >
                           <option value="">Select Status</option>
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
+                          <option value="1">Active</option>
+                          <option value="0">Inactive</option>
                         </select>
                         {formik.touched.status && formik.errors.status && (
                           <span className="text-danger">{formik.errors.status}</span>
                         )}
                       </div>
 
-<<<<<<< Updated upstream
-
-                      <div className="col-md-12 fv-row">
-=======
                       <div className="col-md-8 fv-row">
->>>>>>> Stashed changes
                         <label className="form-label manager-code">Description</label>
                         <ReactQuill
                           theme="snow"
@@ -263,11 +257,7 @@ const Form: React.FC<FormProps> = ({
                           onBlur={formik.handleBlur}
                           modules={{
                             toolbar: [
-<<<<<<< Updated upstream
-                              [{ header: [1, 2, false] }],
-=======
                               [{ header: [1, 4, false] }],
->>>>>>> Stashed changes
                               ['bold', 'italic', 'underline'],
                               ['link', 'image'],
                               ['clean'], // remove formatting button
@@ -279,10 +269,7 @@ const Form: React.FC<FormProps> = ({
                           <span className="text-danger">{formik.errors.description}</span>
                         )}
                       </div>
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
                     </div>
 
                     <div className="d-flex justify-content-end">
