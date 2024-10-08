@@ -7,7 +7,8 @@ import Loader from '../../include/loader';
 import '../../include/loader.css';
 import DataTable from 'react-data-table-component';
 import Breadcrumb from '../../include/breadcrumbs';
-import Pagination from './pagination';
+// import Pagination from './pagination';
+import Pagination from '../../include/pagination'
 import SearchForm from '../../include/searchForm';
 
 interface SupportingAssociation {
@@ -319,7 +320,7 @@ const Index: React.FC = () => {
             <div id="kt_app_content_container" className="app-container">
               <div className="card card-flush mb-5">
                 <div className="card-body pt-6 pb-3">
-                  <SearchForm module={module} moduleTitle={moduleTitle} />
+                  {/* <SearchForm module={module} moduleTitle={moduleTitle} /> */}
                 </div>
               </div>
               <div className="card card-flush mb-5">

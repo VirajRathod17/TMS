@@ -55,12 +55,7 @@ class SupportingAssociationController extends Controller
     }
 
     public function store(Request $request)
-    {
-        echo '<pre>';
-            print_r($request->all());
-            echo '</pre>';
-        exit();
-   
+    {   
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100',
             'website_link' => 'nullable|string|max:255',
@@ -99,7 +94,6 @@ class SupportingAssociationController extends Controller
                 $image->move($uploadPath, $filename);
                 $suppo_assos->image = $filename;
                 $suppo_assos->save();
-
             }
 
             return response()->json([
@@ -123,7 +117,6 @@ class SupportingAssociationController extends Controller
     public function show($id)
     {
         
-
         $suppo_assos = $this->modelObj::find($id);
 
         if(isset($suppo_assos)) {
@@ -146,26 +139,20 @@ class SupportingAssociationController extends Controller
 
     public function update(Request $request, $id)
     {
-        
-        echo 'asd'.'<pre>';
-            print_r($request->all());
-        echo '</pre>';
-        exit();
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:2|max:100',
+            'website_link' => 'nullable|string|max:255',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
+            'status' => 'required',
+            'description' => 'required',
+        ]);
 
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'required|string|min:2|max:100',
-        //     'website_link' => 'nullable|string|max:255',
-        //     'image' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
-        //     'status' => 'required',
-        //     'description' => 'required',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => 'error',
-        //         'message' => $validator->errors()->first(),
-        //     ], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
 
         try {
             $suppo_assos = $this->modelObj::findOrFail($id);
@@ -177,10 +164,17 @@ class SupportingAssociationController extends Controller
                 'description' => $request->description,
             ];
 
-            // Handle the image upload
             if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('images'); // Store the image and get its path
-                $data['image'] = $imagePath; // Update the path in the data array
+                $image = $request->file('image');
+                $filename = time() . rand(0, 9999999) . '.' . $image->getClientOriginalExtension();
+                $uploadPath = public_path('admin' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $this->moduleSlug . DIRECTORY_SEPARATOR . $suppo_assos->id);
+    
+                if (\File::exists($uploadPath)) {
+                    \File::delete($uploadPath);
+                }
+                $filename = strtolower(str_replace(' ', '_', $image->getClientOriginalName()));
+                $image->move($uploadPath, $filename);
+                $data['image'] = $filename;
             }
 
             $suppo_assos->update($data);

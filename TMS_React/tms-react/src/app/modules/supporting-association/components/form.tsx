@@ -43,46 +43,103 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
       image: Yup.mixed()
         .test('fileType', 'Unsupported File Format', (value) => {
           if (value && value.type) return ['image/jpeg', 'image/png'].includes(value.type);
-          return true; // Allow no image change during edit
+          return true;
         })
         .test('fileSize', 'File too large', (value) => {
           if (value && value.size) return value.size <= 1024 * 1024 * 5;
-          return true; // Allow no image change during edit
+          return true;
         }),
     }),
 
+    // onSubmit: async (values) => {
+    //   setLoading(true);
+
+    //   try {
+    //     const token = localStorage.getItem('jwt_token');
+    //     let method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
+    //     let url = mode === 'edit' ? `${submitUrl}` : submitUrl;
+
+    //     // const formData = new FormData();
+
+    //     // // Append regular fields
+    //     // formData.append('name', values.name);
+    //     // formData.append('website_link', values.website_link);
+    //     // formData.append('status', values.status);
+    //     // formData.append('description', values.description);
+
+    //     // // Append image if a new image is selected, otherwise do not append it
+    //     // if (values.image) {
+    //     //   formData.append('image', values.image);
+    //     // }
+
+    //     // Make the API request
+    //     const response = await axios({
+    //       method: method,
+    //       url: url,
+    //       data: values,
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //         // 'Content-Type': 'multipart/form-data',
+    //       },
+    //     });
+
+    //     if (response.data.status === 'success') {
+    //       Swal.fire({
+    //         title: 'Success',
+    //         text: successMessage,
+    //         icon: 'success',
+    //         confirmButtonText: 'OK',
+    //       }).then(() => {
+    //         navigate(redirectUrl);
+    //         formik.resetForm();
+    //       });
+    //     } else {
+    //       Swal.fire({
+    //         title: 'Error',
+    //         text: response.data.message,
+    //         icon: 'error',
+    //         confirmButtonText: 'OK',
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.log('Error submitting form:', error);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // },
+
     onSubmit: async (values) => {
       setLoading(true);
-
+    
       try {
         const token = localStorage.getItem('jwt_token');
-        let method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
+        let method: 'post' | 'put' = mode === 'edit' ? 'post' : 'post';
         let url = mode === 'edit' ? `${submitUrl}` : submitUrl;
-
+  
         const formData = new FormData();
-
-        // Append regular fields
+    
         formData.append('name', values.name);
         formData.append('website_link', values.website_link);
         formData.append('status', values.status);
         formData.append('description', values.description);
-
-        // Append image if a new image is selected, otherwise do not append it
-        if (values.image) {
+    
+        if (mode === 'edit') {
+          formData.append('_method', 'PUT');
+        }
+  
+        if (values.image instanceof File) {
           formData.append('image', values.image);
         }
-
-        // Make the API request
+    
         const response = await axios({
           method: method,
           url: url,
           data: formData,
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
           },
         });
-
+    
         if (response.data.status === 'success') {
           Swal.fire({
             title: 'Success',
@@ -111,7 +168,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
 
   useEffect(() => {
     formik.setValues(initialValues);
-    setImagePreview(initialValues.image_path || null); // Reset image preview on mode change
+    setImagePreview(initialValues.image_path || null);
   }, [initialValues]);
 
   return (

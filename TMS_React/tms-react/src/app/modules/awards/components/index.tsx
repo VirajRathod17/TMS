@@ -7,20 +7,20 @@ import Loader from '../../include/loader';
 import '../../include/loader.css';
 import DataTable from 'react-data-table-component';
 import Breadcrumb from '../../include/breadcrumbs';
-import Pagination from './pagination';
+import Pagination from '../../include/pagination';
 import SearchForm from '../../include/searchForm';
+import useFetchAwards from './fetchAwards';
+
 
 interface Award {
   id: number;
   name: string;
   year: string;
-  location: string;
   created_at: string;
 }
 
 const Index: React.FC = () => {
-  const [awards, setAwards] = useState<Award[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { awards, loading, setAwards } = useFetchAwards();
   const [selectedAwards, setSelectedAwards] = useState<number[]>([]);
   const [isSelectAll, setIsSelectAll] = useState(false);
   const [paginatedAwards, setPaginatedAwards] = useState<Award[]>([]);
@@ -62,31 +62,8 @@ const Index: React.FC = () => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = String(date.getFullYear()).slice(-2);
   
-    return `${day}/${month}/${year}`;
+    return `${day}-${month}-${year}`;
   };
-
-  useEffect(() => {
-    const fetchAwards = async () => {
-      try {
-        const token = localStorage.getItem('jwt_token');
-        const response = await axios.get(
-          `${process.env.REACT_APP_API_BASE_URL}awards`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setAwards(response.data.data);
-      } catch (error) {
-        console.error('Error fetching Awards:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAwards();
-  }, []);
 
   useEffect(() => {
     setTotalPages(Math.ceil(awards.length / itemsPerPage));
@@ -183,7 +160,7 @@ const Index: React.FC = () => {
   const columns = [
     {
       name: <input className="form-check-input" type="checkbox" checked={isSelectAll} onChange={handleSelectAllChange} />,
-      cell: (row: Award) => (
+      cell: (row: any) => (
         <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
           <input
             className="form-check-input"
@@ -202,31 +179,31 @@ const Index: React.FC = () => {
     },
     {
       name: 'ID',
-      selector: (row: Award) => row.id,
+      selector: (row: any) => row.id,
       sortable: true,
       width: '80px',
     },
     {
       name: 'Award Date',
-      selector: (row: Award) => formatDate(row.created_at),
+      selector: (row: any) => formatDate(row.created_at),
       sortable: true,
       width: '150px',
     },
     {
       name: 'Name',
-      selector: (row: Award) => row.name,
+      selector: (row: any) => row.name,
       sortable: true,
       width: '200px',
     },
     {
       name: 'Award Year',
-      selector: (row: Award) => row.year,
+      selector: (row: any) => row.year,
       sortable: true,
       width: '200px',
     },
     {
       name: 'Action',
-      cell: (row: Award) => (
+      cell: (row: any) => (
         <>
           <Link to={`/awards/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
             <i className="fas fa-edit"></i>
