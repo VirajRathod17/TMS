@@ -2,7 +2,7 @@
   "name": "demo1",
   "version": "8.1.2",
   "private": true,
-  "homepage": "https://tmsbackend.ngtdev.xyz",
+  "homepage": "/",
   "dependencies": {
     "@formatjs/intl-pluralrules": "4.3.3",
     "@formatjs/intl-relativetimeformat": "10.0.1",

@@ -18,7 +18,7 @@ const useFetchNews = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchnews = async () => {
+    const fetchnews = async () => {``
       try {
         const token = localStorage.getItem('jwt_token');
         const response = await axios.get(
