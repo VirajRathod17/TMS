@@ -11,8 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('news', function (Blueprint $table) {
+        Schema::create('tbl_news', function (Blueprint $table) {
             $table->id();
+            $table->string('title')->nullable();
+            $table->string('slug')->nullable();
+            $table->longText('description')->nullable();
+            $table->date('date')->nullable();
+            $table->string('location')->nullable();
+            $table->string('image')->nullable();
+            $table->enum('status', ['0', '1'])->default('0')->comment('0: InActive, 1: Active');
             $table->timestamps();
         });
     }
@@ -22,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('news');
+        Schema::dropIfExists('tbl_news');
     }
 };

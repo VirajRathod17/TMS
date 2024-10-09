@@ -20,12 +20,13 @@ interface FormProps {
 }
 
 type FormValues = {
-  name: string;
+  title: string;
   image: File | null;
-  award_id: string;
-  website_link: string;
+  location: string;
+  date: string;
   description?: string; // This will hold HTML content
   status: string;
+  image_path: string;
 };
 
 const Form: React.FC<FormProps> = ({
@@ -35,21 +36,31 @@ const Form: React.FC<FormProps> = ({
   redirectUrl,
   successMessage,
   pageTitle,
-  oldImageUrl, // Receive the old image URL
+  oldImageUrl,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(initialValues.image_path || null);
+  // const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const formik = useFormik<FormValues>({
     initialValues: initialValues,
     validationSchema: Yup.object({
-      name: Yup.string().required('Name is required'),
-      image: Yup.mixed().required('Image is required'),
-      award_id: Yup.string().required('Year is required'),
-      website_link: Yup.string().url('Invalid URL format').required('Website link is required'),
-      description: Yup.string().max(500, 'Description must be 500 characters or less'), // Validate HTML length if needed
+      title: Yup.string().required('Title is required'),
+      // image: Yup.mixed().required('Image is required'),
+      location: Yup.string().required('Location is required'),
+      date: Yup.date().required('Date is required').nullable(), // Change to Yup.date()
+      description: Yup.string().max(500, 'Description must be 500 characters or less'),
       status: Yup.string().required('Status is required'),
+      image: Yup.mixed()
+      .test('fileType', 'Unsupported File Format', (value) => {
+        if (value && value.type) return ['image/jpeg', 'image/png'].includes(value.type);
+        return true;
+      })
+      .test('fileSize', 'File too large', (value) => {
+        if (value && value.size) return value.size <= 1024 * 1024 * 5; // 5MB limit
+        return true;
+      }),
     }),
 
     onSubmit: async (values) => {
@@ -58,12 +69,12 @@ const Form: React.FC<FormProps> = ({
       try {
         const token = localStorage.getItem('jwt_token');
         const method = mode === 'edit' ? 'post' : 'post'; // Always use 'post' for this structure
-        const url = mode === 'edit' ? `${submitUrl}` : submitUrl;
+        const url = mode === 'edit' ? submitUrl : submitUrl;
 
         const formData = new FormData();
-        formData.append('name', values.name);
-        formData.append('website_link', values.website_link);
-        formData.append('award_id', values.award_id);
+        formData.append('title', values.title);
+        formData.append('location', values.location);
+        formData.append('date', values.date);
         formData.append('status', values.status);
         formData.append('description', values.description || '');
 
@@ -71,7 +82,7 @@ const Form: React.FC<FormProps> = ({
           formData.append('_method', 'PUT'); // Add _method for PUT
         }
 
-        if (values.image) { // Check if an image file is provided
+        if (values.image) {
           formData.append('image', values.image);
         }
 
@@ -103,7 +114,13 @@ const Form: React.FC<FormProps> = ({
           });
         }
       } catch (error) {
-        console.log('Error submitting form:', error);
+        console.error('Error submitting form:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'An error occurred while saving the data.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+        });
       } finally {
         setLoading(false);
       }
@@ -119,18 +136,22 @@ const Form: React.FC<FormProps> = ({
       const fileURL = URL.createObjectURL(file);
       setImagePreview(fileURL);
     } else {
-      setImagePreview(oldImageUrl || null); // Reset to old image if no file is selected
+      setImagePreview(oldImageUrl || null);
     }
   };
 
+  // useEffect(() => {
+  //   formik.setValues(initialValues);
+
+  //   if (mode === 'edit' && oldImageUrl) {
+  //     setImagePreview(oldImageUrl);
+  //   }
+  // }, [initialValues, oldImageUrl, mode]);
+
   useEffect(() => {
     formik.setValues(initialValues);
-
-    // Set the image preview based on the mode
-    if (mode === 'edit' && oldImageUrl) {
-      setImagePreview(oldImageUrl);
-    }
-  }, [initialValues, oldImageUrl, mode]);
+    setImagePreview(initialValues.image_path || null); // Ensure the preview is set properly
+  }, [initialValues]);
 
   return (
     <>
@@ -149,85 +170,85 @@ const Form: React.FC<FormProps> = ({
                   <form id="form-input" encType="multipart/form-data" onSubmit={formik.handleSubmit}>
                     <div className="row">
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Name</label>
+                        <label className="required form-label manager-code">Title</label>
                         <input
                           type="text"
-                          name="name"
+                          name="title"
                           className="form-control mb-2"
-                          placeholder="Enter Name"
-                          value={formik.values.name}
+                          placeholder="Enter Title"
+                          value={formik.values.title}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          aria-label="Name"
+                          aria-label="Title"
                         />
-                        {formik.touched.name && formik.errors.name && (
-                          <span className="text-danger">{formik.errors.name}</span>
+                        {formik.touched.title && formik.errors.title && (
+                          <span className="text-danger">{formik.errors.title}</span>
                         )}
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="form-label">Image</label>
+                      <label className="form-label">Image</label>
+                      <input
+                        type="file"
+                        name="image"
+                        className="form-control mb-2"
+                        accept="image/*"
+                        onChange={(event) => {
+                          if (event.target.files && event.target.files[0]) {
+                            formik.setFieldValue('image', event.target.files[0]);
+                            setImagePreview(URL.createObjectURL(event.target.files[0])); // Show preview of the new image
+                          }
+                        }}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.touched.image && formik.errors.image && (
+                        <span className="text-danger">{formik.errors.image}</span>
+                      )}
+                      {imagePreview && (
+                        <div className="mt-3">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            width="100"
+                            height="100"
+                            style={{ objectFit: 'cover', borderRadius: '5px' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                      <div className="col-md-4 fv-row">
+                        <label className="required form-label manager-code">Location</label>
                         <input
-                          type="file"
-                          name="image"
+                          type="text"
+                          name="location"
                           className="form-control mb-2"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          onBlur={formik.handleBlur}
-                        />
-                        {formik.touched.image && formik.errors.image && (
-                          <span className="text-danger">{formik.errors.image}</span>
-                        )}
-                        {imagePreview && (
-                          <div className="mt-3">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              width="100"
-                              height="100"
-                              style={{ objectFit: 'cover', borderRadius: '5px' }}
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Year</label>
-                        <select
-                          name="award_id"
-                          className="form-control mb-2"
-                          value={formik.values.award_id}
+                          placeholder="Enter Location"
+                          value={formik.values.location}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          aria-label="Year"
-                        >
-                          <option value="">Select Year</option>
-                          <option value="2022">2022</option>
-                          <option value="2021">2021</option>
-                        </select>
-                        {formik.touched.award_id && formik.errors.award_id && (
-                          <span className="text-danger">{formik.errors.award_id}</span>
+                          aria-label="Location"
+                        />
+                        {formik.touched.location && formik.errors.location && (
+                          <span className="text-danger">{formik.errors.location}</span>
                         )}
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Website Link</label>
+                        <label className="required form-label manager-code">Date</label>
                         <input
-                          type="url"
-                          name="website_link"
+                          type="date"
+                          name="date"
                           className="form-control mb-2"
-                          placeholder="Enter Website URL"
-                          value={formik.values.website_link}
+                          value={formik.values.date}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          aria-label="Website Link"
+                          aria-label="Date"
                         />
-                        {formik.touched.website_link && formik.errors.website_link && (
-                          <span className="text-danger">{formik.errors.website_link}</span>
+                        {formik.touched.date && formik.errors.date && (
+                          <span className="text-danger">{formik.errors.date}</span>
                         )}
                       </div>
-
-
 
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Status</label>

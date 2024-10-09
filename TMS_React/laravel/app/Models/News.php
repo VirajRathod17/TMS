@@ -92,19 +92,23 @@ class News extends Model
      * @param mixed $size The size of the image. Defaults to null.
      * @return string The URL of the news image.
      */
+
     public static function getNewsImage($id = 0, $img_name = '', $size = null)
     {
-        if ($id > 0 && $img_name != '') {
+        $image = '';
+    
+        if ($id > 0 && !empty($img_name)) {
+            // Construct the image path based on size
             if ($size) {
-                $image = asset('Admin/uploads/news/' . $id . '/thumb_' . $size . '_' . $img_name);
+                $image = asset('storage/news/' . $id . '/thumb_' . $size . '_' . $img_name);
             } else {
-                $image = asset('Admin/uploads/news/' . $id . '/' . $img_name);
+                $image = asset('storage/news/' . $id . '/' . $img_name);
             }
         } else {
-            $image = asset('Admin/uploads/noimg.png');
-
+            // Fallback to a default image if no valid image is provided
+            $image = asset('storage/Admin/uploads/noimg.png');
         }
-
+    
         return $image;
     }
 

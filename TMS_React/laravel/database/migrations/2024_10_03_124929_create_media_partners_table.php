@@ -21,7 +21,7 @@ return new class extends Migration
             $table->enum('status', ['0', '1'])->default('0')->comment('0: InActive, 1: Active');
             $table->timestamps();
 
-            $table->foreign('award_id')->references('id')->on('tbl_awards')->onDelete('cascade');
+            // $table->foreign('award_id')->references('id')->on('tbl_awards')->onDelete('cascade');
         });
     }
 
