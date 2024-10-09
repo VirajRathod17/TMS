@@ -235,7 +235,7 @@ function Index() {
         {
           name: 'Award ID',
           selector: (row: AwardCategory) => row.award_id,
-          sortable: true,
+          sortable: false,
           width: '150px',
         },
         {

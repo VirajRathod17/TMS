@@ -5,14 +5,12 @@ import Breadcrumb from '../../include/breadcrumbs';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import {Helmet} from 'react-helmet';
-import SearchForm from '../../include/searchForm';
 import DataTable from 'react-data-table-component';
 import Pagination from '../../include/pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare, faTrash , faEye } from '@fortawesome/free-solid-svg-icons';
-import { Badge } from 'react-bootstrap';
-
+import fetchJudges  from './fetchJudges';
+import SearchJudges from './searchJudges';
 interface Judges {
     id: number;
     date: string;
@@ -21,44 +19,56 @@ interface Judges {
     status: string; 
     post: string;
 }
-
 function Index() {
   const [judges, setJudges] = useState<Judges[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchName, setSearchName] = useState<string>('');
+  const [filteredJudges, setFilteredJudges] = useState<Judges[]>([]);
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const [searchPost, setSearchPost] = useState<string>(''); 
   const pageTitle = 'Manage Judges Panel'; 
-  const module = 'judges';
   const moduleTitle = 'Judges Panel';
     useEffect(() => {
         document.title = pageTitle; 
     }, [pageTitle]); 
 
     const breadcrumbs = [{ label: 'Manage Judges Panel', url: '' }];
+    
     useEffect(() => {
-        const fetchJudges = async () => {
-            try {
-                const token = localStorage.getItem('jwt_token');
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_BASE_URL}judges`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                setJudges(response.data.data);
-            } catch (error) {
-                console.error('Error fetching award categories:', error);
-            } finally {
-                setLoading(false);
-            }
+        const getJudges = async () => {
+          try {
+            const data = await fetchJudges();
+            setJudges(data);
+          } catch (error) {
+            console.error('Error fetching judges:', error);
+          } finally {
+            setLoading(false);
+          }
         };
+    
+        getJudges();
+      }, []);
 
-        fetchJudges();
-    }, []);
 
+      useEffect(() => {
+        const filterData = () => {
+          const filtered = judges.filter((judge) => {
+            const matchesName = judge.name.toLowerCase().includes(searchName.toLowerCase());
+            const matchesDateRange = (!fromDate || new Date(judge.date) >= new Date(fromDate)) &&
+                                     (!toDate || new Date(judge.date) <= new Date(toDate));
+            const matchesPost = judge.post.toLowerCase().includes(searchPost.toLowerCase());
+            return matchesName && matchesDateRange && matchesPost;
+          });
+      
+          setFilteredJudges(filtered);
+        };
+      
+        filterData();
+      }, [searchName,fromDate, toDate, judges, searchPost]);
 
      // Paginate the filtered data
      const paginatedData = judges.slice(
@@ -66,7 +76,7 @@ function Index() {
         currentPage * itemsPerPage
     );
 
-    const totalPages = Math.ceil(judges.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredJudges.length / itemsPerPage);
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
@@ -228,9 +238,9 @@ function Index() {
           cell: (row: Judges) => (
             <>
               <div className="text-end">
-                {/* <Link to={`/award-category/view/${row.id}`} className="btn btn-sm btn-primary me-2">
+                <Link to={`/judges/view/${row.id}`} className="btn btn-sm btn-primary me-2">
                   <FontAwesomeIcon icon={faEye} />
-                </Link> */}
+                </Link>
                 <Link to={`/judges/edit/${row.id}`} className="btn btn-sm btn-info me-2">
                    <FontAwesomeIcon icon={faPenToSquare} />
                 </Link>
@@ -281,6 +291,19 @@ function Index() {
           return <Loader />;
       }
 
+      // Updated handleSearch function to match the expected structure
+      const handleSearch = ({ name,from_date, to_date, post }: 
+        { name: string; from_date: string, to_date: string, post: string}) => {
+        setSearchName(name);
+        setFromDate(from_date);
+        setToDate(to_date);  
+        setSearchPost(post);
+      };
+          
+      const handleReset = () => {
+        setFilteredJudges(judges);
+      };
+
       return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
           <div className="d-flex flex-column flex-column-fluid">
@@ -291,8 +314,7 @@ function Index() {
               <div id="kt_app_content_container" className="app-container">
                 <div className="card card-flush mb-5">
                   <div className="card-body pt-6 pb-3">
-                  {/* <SearchForm  module={module} 
-                      moduleTitle={moduleTitle} onSearch={handleSearch} onReset={handleReset}/> */}
+                  <SearchJudges moduleTitle={moduleTitle} onSearch={handleSearch} onReset={handleReset}/>
                   </div>
                 </div>
                 <div className="card card-flush mb-5">
@@ -322,7 +344,7 @@ function Index() {
                     </div>
                     <DataTable
                         columns={columns}
-                        data={paginatedData}
+                        data={filteredJudges}
                         customStyles={customStyles}
                         pagination={false}
                         noDataComponent="No Judges found"

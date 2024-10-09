@@ -1,21 +1,21 @@
 import React from 'react';
 import DatePicker from 'react-datepicker';
+import { set } from 'react-datepicker/dist/date_utils';
 import 'react-datepicker/dist/react-datepicker.css';
 
 interface SearchFormProps {
-    module: string;
+    // module: string;
     moduleTitle: string;
-    onSearch: (query: { name: string; awardCategoryStatus: string; from_date: string; to_date: string }) => void;
+    onSearch: (query: { name: string; from_date: string; to_date: string; post: string }) => void;
     onReset: () => void;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, onReset }) => {
+const SearchJudges: React.FC<SearchFormProps> = ({moduleTitle, onSearch, onReset}) => {
     const [name, setName] = React.useState('');
-    const [awardCategoryStatus, setAwardCategoryStatus] = React.useState('');
     const [loading, setLoading] = React.useState(false);
     const [from_date, setFromDate] = React.useState<Date | null>(null);
     const [to_date, setToDate] = React.useState<Date | null>(null);
-
+    const [post, setPost] = React.useState('');
     // Utility function to format date as dd-mm-yyyy
     const formatDate = (date: Date | null): string => {
         if (!date) return '';
@@ -26,7 +26,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, 
     };
 
     const handleSearch = () => {
-        if (module === 'award-category') {
             setLoading(true);
 
             // Format the from_date and to_date
@@ -36,24 +35,19 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, 
             // Pass both name and awardCategoryStatus in one object, including formatted dates
             onSearch({
                 name,
-                awardCategoryStatus,
+                post,
                 from_date: formattedFromDate,
                 to_date: formattedToDate,
             });
 
             setLoading(false);
-        }
     };
 
     const handleReset = () => {
-        // Reset all state variables
-        if (module === 'award-category') {
-            setName('');
-            setAwardCategoryStatus('');
-        }
-        // Set from_date and to_date back to null
-        setFromDate(null); // This should be fine now
-        setToDate(null);   // This should also work now
+        setName('');
+        setPost('');
+        setFromDate(null); 
+        setToDate(null); 
         onReset();
     };
 
@@ -62,7 +56,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, 
             <div className="mb-6">
                 <h2>Search {moduleTitle}</h2>
             </div>
-            {module === 'award-category' && (
                 <div className="row mt-6">
                     <div className="col-lg-3 mb-lg-0">
                         <label>Name:</label>
@@ -76,23 +69,17 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, 
                         />
                     </div>
                     <div className="col-lg-3 mb-lg-0">
-                        <label>Status:</label>
-                        <select
-                            id="award_category_status"
-                            className="form-control form-select datatable-input"
-                            name="awardCategoryStatus"
-                            data-control="select2"
-                            data-hide-search="true"
-                            value={awardCategoryStatus}
-                            onChange={(e) => setAwardCategoryStatus(e.target.value)}
-                        >
-                            <option value="">-Choose Status-</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Active">Active</option>
-                        </select>
+                        <label>Post:</label>
+                        <input
+                            type="text"
+                            id="post"
+                            className="form-control form-control-solid"
+                            placeholder="Enter Post"
+                            value={post}
+                            onChange={(e) => setPost(e.target.value)}
+                        />
                     </div>
                 </div>
-            )}
             <div className="row">
                 <div className="col-lg-3 mb-lg-0">
                     <label>From Date:</label>
@@ -130,10 +117,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, 
                         )}
                     </button>
                     &nbsp;&nbsp;
-                    <button
-                        className="btn btn-secondary btn-secondary--icon"
-                        onClick={handleReset}
-                    >
+                        <button
+                            className="btn btn-secondary btn-secondary--icon"
+                            onClick={handleReset}
+                        >
                         <span>
                             <i className="la la-close"></i>
                             <span>Reset</span>
@@ -145,4 +132,4 @@ const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch, 
     );
 };
 
-export default SearchForm;
+export default SearchJudges;

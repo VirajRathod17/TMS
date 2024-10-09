@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFormik, FormikErrors } from 'formik';
+import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,10 +12,11 @@ interface FormProps {
   mode: 'create' | 'edit';
   initialValues: {
     name: string;
-    main_sponsored_id: string;
     status: string;
     description?: string;
-    questions: string[];
+    image: File | null; 
+    post: string;
+    imageUrl: string;
   };
   submitUrl: string;
   redirectUrl: string;
@@ -26,36 +27,61 @@ interface FormProps {
 // The Form component with proper types
 const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl, successMessage, pageTitle }) => {
   const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(initialValues.imageUrl || null);
   const navigate = useNavigate();
+
   const formik = useFormik({
-    initialValues: {
-      ...initialValues,
-      questions: initialValues.questions || [''], // Initialize questions directly from initialValues
-    },
+    initialValues: initialValues,
+    enableReinitialize: true, // Ensures form is reinitialized with fetched data in edit mode
     validationSchema: Yup.object({
       name: Yup.string().required('Name is required'),
-      main_sponsored_id: Yup.string().required('Main Sponsor is required'),
       status: Yup.string().required('Status is required'),
-      description: Yup.string().max(500, 'Description must be 500 characters or less'),
-      questions: Yup.array().of(Yup.string().required('Question is required')),
+      description: Yup.string()
+        .max(500, 'Description must be 500 characters or less')
+        .required('Description is required'),
+      post: Yup.string().required('Post is required'),
+      image: Yup.mixed()
+      .test('required', 'Image is required', function (value) {
+        // const { mode } = this.options.context; // Accessing the mode from context
+        return mode === 'create' ? value != null : true; // Required if mode is 'create'
+      })
+        // .test('fileSize', 'File size must be 2MB or less', 
+        //   value => (value && value.size <= 2 * 1024 * 1024)) // 2MB
+        // .test('fileType', 'Unsupported file type, must be jpeg, jpg, gif, or png', 
+        //   value => !value || (value && ['image/jpeg', 'image/jpg', 'image/gif', 'image/png'].includes(value.type))),
     }),
     onSubmit: async (values) => {
-      setLoading(true); // Show loader
+      setLoading(true);
+    
       try {
         const token = localStorage.getItem('jwt_token');
-
-        let method: 'post' | 'put' = mode === 'edit' ? 'put' : 'post';
+        let method: 'post' | 'put' = mode === 'edit' ? 'post' : 'post';
         let url = mode === 'edit' ? `${submitUrl}` : submitUrl;
-
+  
+        const formData = new FormData();
+    
+        formData.append('name', values.name);
+        formData.append('status', values.status);
+        formData.append('description', values.description || '');
+        formData.append('post', values.post);
+    
+        if (mode === 'edit') {
+          formData.append('_method', 'PUT');
+        }
+  
+        if (values.image instanceof File) {
+          formData.append('image', values.image);
+        }
+    
         const response = await axios({
           method: method,
           url: url,
-          data: values,
+          data: formData,
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
+    
         if (response.data.status === 'success') {
           Swal.fire({
             title: 'Success',
@@ -77,19 +103,15 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
       } catch (error) {
         console.log('Error submitting form:', error);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     },
   });
 
-  const addQuestion = () => {
-    formik.setFieldValue('questions', [...formik.values.questions, '']); 
-  };
-
-  const removeQuestion = (index: number) => {
-    const updatedQuestions = formik.values.questions.filter((_, idx) => idx !== index); 
-    formik.setFieldValue('questions', updatedQuestions); 
-  };
+  useEffect(() => {
+    formik.setValues(initialValues);
+    setImagePreview(initialValues.imageUrl || null);
+  }, [initialValues]);
 
   return (
     <>
@@ -97,7 +119,6 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
       <div className="d-flex flex-column flex-row-fluid gap-7 gap-lg-10">
         <div className="tab-content">
           <div className="tab-pane fade show active" id="kt_ecommerce_add_product_basic" role="tabpanel">
-            <form id="form-input" encType="multipart/form-data" onSubmit={formik.handleSubmit}>
               <div className="d-flex flex-column">
                 <div className="card card-flush">
                   <div className="card-header">
@@ -106,6 +127,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                     </div>
                   </div>
                   <div className="card-body pt-0">
+                  <form id="form-input" onSubmit={formik.handleSubmit}>
                     <div className="row">
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Name</label>
@@ -117,28 +139,11 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           value={formik.values.name}
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
-                          minLength={3} 
+                          minLength={3}
                           maxLength={30}
                         />
                         {formik.touched.name && formik.errors.name ? (
                           <span className="text-danger">{formik.errors.name as string}</span>
-                        ) : null}
-                      </div>
-                      <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Main Sponsor</label>
-                        <select
-                          name="main_sponsored_id"
-                          className="form-control mb-2"
-                          value={formik.values.main_sponsored_id}
-                          onChange={formik.handleChange}
-                          onBlur={formik.handleBlur}
-                        >
-                          <option value="">Select Main Sponsor</option>
-                          <option value="0">Sponsor 1</option>
-                          <option value="1">Sponsor 2</option>
-                        </select>
-                        {formik.touched.main_sponsored_id && formik.errors.main_sponsored_id ? (
-                          <span className="text-danger">{formik.errors.main_sponsored_id as string}</span>
                         ) : null}
                       </div>
                       <div className="col-md-4 fv-row">
@@ -158,6 +163,40 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                           <span className="text-danger">{formik.errors.status as string}</span>
                         ) : null}
                       </div>
+                      <div className="col-md-4 fv-row">
+                        <label className="required form-label manager-code">Image</label>
+                        <input
+                          type="file"
+                          name="image"
+                          className="form-control mb-2"
+                          onChange={(event) => {
+                            if (event.target.files && event.target.files[0]) {
+                              formik.setFieldValue('image', event.target.files[0]);
+                              setImagePreview(URL.createObjectURL(event.target.files[0]));
+                            }
+                          }}
+                          onBlur={formik.handleBlur}
+                        />
+                         {formik.touched.image && formik.errors.image ? (
+                          <span className="text-danger">{formik.errors.image as string}</span>
+                        ) : null}
+                        {imagePreview && <img src={imagePreview} alt="Preview" style={{ width: '100px', marginTop: '10px' }} />}
+                      </div>
+                      <div className="col-md-4 fv-row">
+                        <label className="required form-label manager-code">Post</label>
+                        <input
+                          type="text"
+                          name="post"
+                          className="form-control mb-2"
+                          placeholder="Enter Post"
+                          value={formik.values.post}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                        />
+                         {formik.touched.post && formik.errors.post ? (
+                          <span className="text-danger">{formik.errors.post as string}</span>
+                        ) : null}
+                      </div>
                       <div className="col-md-8 fv-row">
                         <label className="required form-label manager-code">Description</label>
                         <textarea
@@ -173,70 +212,18 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                         ) : null}
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-              <div className="d-flex flex-column mt-5">
-                <div className="card card-flush">
-                  <div className="card-header">
-                    <div className="card-title">
-                      <h2>Award Categories Questions</h2>
-                    </div>
-                  </div>
-                  <div className="card-body pt-0">
-                    <div className="row">
-                      <div id="kt_docs_repeater_nested">
-                        <div className="form-group">
-                          <div data-repeater-list="kt_docs_repeater_nested_outer">
-                            <div className="col-md-12 mt-5">
-                              {formik.values.questions.map((question, index) => (
-                                <div key={index} className="form-group row mb-5">
-                                  <div className="col-md-8">
-                                    <label className="form-label">Question {index + 1}</label>
-                                    <textarea
-                                      name={`questions[${index}]`} // Directly set name as `questions[index]`
-                                      className="form-control mb-2"
-                                      placeholder="Enter your Question"
-                                      value={question} // Set value directly from Formik's state
-                                      onChange={formik.handleChange}
-                                      onBlur={formik.handleBlur}
-                                    />
-                                     {formik.touched.questions && formik.errors.questions && formik.errors.questions[index] ? (
-                                      <span className="text-danger">{formik.errors.questions[index]}</span>
-                                    ) : null}
-                                  </div>
-                                  <div className="col-md-4">
-                                    <button
-                                      type="button"
-                                      className="btn btn-sm btn-light-danger mt-3"
-                                      onClick={() => removeQuestion(index)}
-                                    >
-                                      Delete Question
-                                    </button>
-                                  </div>
-                                </div>
-                              ))}
-                              <button type="button" className="btn btn-light-primary" onClick={addQuestion}>
-                                Add Question
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                     <div className="d-flex justify-content-end">
-                    <Link to={redirectUrl} className="btn btn-light me-3">
+                      <Link to={redirectUrl} className="btn btn-light me-3">
                         Cancel
                       </Link>
                       <button type="submit" className="btn btn-primary">
                         Submit
                       </button>   
                     </div>
+                  </form>
                   </div>
                 </div>
               </div>
-             
-            </form>
           </div>
         </div>
       </div>

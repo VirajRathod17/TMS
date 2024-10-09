@@ -84,7 +84,7 @@ class JudgesController extends Controller
             'post' => 'required',
             'description' => 'required',
             'status' => 'required',
-            'is_chairman' => 'required',
+            // 'is_chairman' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -101,7 +101,7 @@ class JudgesController extends Controller
         $judge->post = $request->post;
         $judge->description = $request->description;
         $judge->status = $request->status;
-        $judge->is_chairman = $request->is_chairman;
+        $judge->is_chairman = $request->is_chairman ?? '0';
         $judge->save();
 
         if ($request->hasFile('image')) {
@@ -133,6 +133,7 @@ class JudgesController extends Controller
 
         if(isset($judge))
         {
+            $judge->imageUrl = $this->modelObj->getJudgesImage($judge->id, $judge->image) ;
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Judge found successfully";
             $this->responseData['data'] = $judge;
@@ -158,14 +159,14 @@ class JudgesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request,$id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
+           'name' => 'required|max:255',
             'post' => 'required',
             'description' => 'required',
             'status' => 'required',
-            'is_chairman' => 'required',
+            // 'is_chairman' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -180,15 +181,28 @@ class JudgesController extends Controller
 
         if(isset($judge))
         { 
-            $judge->award_id = $award->id ?? 0;
-            $judge->name = $request->name;
-            $judge->post = $request->post;
-            $judge->description = $request->description;
-            $judge->status = $request->status;
-            $judge->is_chairman = $request->is_chairman;
-            $judge->save();
-        
+            $data = [
+                'name' => $request->name,
+                'post' => $request->post,
+                'description' => $request->description,
+                'status' => $request->status,
+                'is_chairman' => $request->is_chairman ?? '0',
+                'award_id' => $award->id ?? 0,
+            ];
+            if ($request->hasFile('image')) {
 
+                $image = $request->file('image');
+                $filename = time() . rand(0, 9999999) . '.' . $image->getClientOriginalExtension();
+                $uploadPath = public_path('admin' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $this->moduleSlug . DIRECTORY_SEPARATOR . $judge->id);
+            
+                if (\File::exists($uploadPath)) {
+                    \File::delete($uploadPath);
+                }
+                $image->move($uploadPath, $filename);
+                $data['image'] = $filename;
+            }
+
+            $judge->update($data);
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Judge updated successfully";
             $this->responseData['data'] = $judge;
