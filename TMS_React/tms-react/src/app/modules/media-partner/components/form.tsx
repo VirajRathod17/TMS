@@ -166,31 +166,35 @@ const Form: React.FC<FormProps> = ({
                       </div>
 
                       <div className="col-md-4 fv-row">
-                        <label className="required form-label manager-code">Image</label>
-                        <input
-                          type="file"
-                          name="image"
-                          className="form-control mb-2"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          onBlur={formik.handleBlur}
-                          aria-label="Image"
-                        />
-                        {formik.touched.image && formik.errors.image && (
-                          <span className="text-danger">{formik.errors.image}</span>
-                        )}
-                        {imagePreview && (
-                          <div className="mt-3">
-                            <img
-                              src={imagePreview}
-                              alt="Preview"
-                              width="100"
-                              height="100"
-                              style={{ objectFit: 'cover', borderRadius: '5px' }}
-                            />
-                          </div>
-                        )}
-                      </div>
+                      <label className="form-label">Image</label>
+                      <input
+                        type="file"
+                        name="image"
+                        className="form-control mb-2"
+                        accept="image/*"
+                        onChange={(event) => {
+                          if (event.target.files && event.target.files[0]) {
+                            formik.setFieldValue('image', event.target.files[0]);
+                            setImagePreview(URL.createObjectURL(event.target.files[0]));
+                          }
+                        }}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.touched.image && formik.errors.image && (
+                        <span className="text-danger">{formik.errors.image}</span>
+                      )}
+                      {imagePreview && ( 
+                        <div className="mt-3">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            width="100"
+                            height="100"
+                            style={{ objectFit: 'cover', borderRadius: '5px' }}
+                          />
+                        </div>
+                      )}
+                    </div>
 
                       <div className="col-md-4 fv-row">
                         <label className="required form-label manager-code">Year</label>
@@ -248,31 +252,17 @@ const Form: React.FC<FormProps> = ({
                         )}
                       </div>
 
-                      <div className="col-md-8 fv-row">
-
-                        <div className="col-md-12 fv-row">
-                          <label className="form-label manager-code">Description</label>
-                          <ReactQuill
-                            theme="snow"
-                            value={formik.values.description}
-                            onChange={(content) => formik.setFieldValue('description', content)}
-                            onBlur={formik.handleBlur}
-                            modules={{
-                              toolbar: [
-                                [{ header: [1, 4, false] }],
-                                [{ header: [1, 2, false] }],
-                                ['bold', 'italic', 'underline'],
-                                ['link', 'image'],
-                                ['clean'], // remove formatting button
-                              ],
-                            }}
-                            placeholder="Enter Description"
-                          />
-                          {formik.touched.description && formik.errors.description && (
-                            <span className="text-danger">{formik.errors.description}</span>
-                          )}
-                        </div>
-                      </div>
+                      <div className="col-md-12 fv-row mt-2">
+                      <label htmlFor="description" className="form-label">Description</label>
+                      <ReactQuill
+                        value={formik.values.description}
+                        onChange={(value) => formik.setFieldValue('description', value)}
+                        onBlur={formik.handleBlur}
+                      />
+                      {formik.touched.description && formik.errors.description && (
+                        <span className="text-danger">{formik.errors.description}</span>
+                      )}
+                    </div>
                     </div>
 
                     <div className="d-flex justify-content-end">
