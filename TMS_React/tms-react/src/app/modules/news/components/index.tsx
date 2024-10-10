@@ -176,6 +176,9 @@ const deleteMultiple = async () => {
       name: 'Action',
       cell: (row: NewsType) => (
         <>
+         <Link to={`/news/view/${row.id}`} className="btn-info btn btn-sm btn-icon btn-light me-2">
+            <i className="fas fa-eye"></i>
+          </Link>
           <Link to={`/news/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
             <i className="fas fa-edit"></i>
           </Link>
