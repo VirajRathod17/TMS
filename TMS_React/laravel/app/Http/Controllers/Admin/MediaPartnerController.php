@@ -4,76 +4,29 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
-use App\Models\MediaPartner;
-use Illuminate\Support\Facades\Storage;
+use App\Models\MediaPartner; // Updated to MediaPartner model
+use DataTables;
+use Illuminate\Support\Facades\Log;
 
-class MediaPartnerController extends Controller
+class MediaPartnerController extends Controller // Updated to MediaPartnerController
 {
-    // Store a new Media Partner
-    public function store(Request $request)
+    protected $moduleSlug;
+    protected $module;
+    protected $modelObj;
+    protected $viewBase;
+
+    public function __construct()
     {
-        // Validate incoming request
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'award_id' => 'required',
-            'website_link' => 'required|url',
-            'slug' => 'nullable|unique:media_partners,slug',
-            'description' => 'required',
-            'status' => 'required|in:0,1',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()->first(),
-                'data' => [],
-            ]);
-        }
-
-        // Create a new media partner record
-        $mediaPartner = new MediaPartner();
-        $mediaPartner->name = $request->name;
-        $mediaPartner->award_id = $request->award_id;
-        $mediaPartner->website_link = $request->website_link;
-        $mediaPartner->slug = $request->slug;
-        $mediaPartner->description = $request->description;
-        $mediaPartner->status = $request->status;
-
-        // Save to get ID for image folder
-        $mediaPartner->save();
-
-        // Handle the image upload
-        if ($request->hasFile('image')) {
-            $folderPath = 'admin/uploads/media-partners/' . $mediaPartner->id;
-
-            // Ensure directory exists
-            if (!file_exists(public_path($folderPath))) {
-                mkdir(public_path($folderPath), 0777, true);
-            }
-
-            $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-
-            // Move the image to the public folder
-            $image->move(public_path($folderPath), $imageName);
-
-            // Save the image path in the database
-            $mediaPartner->image = $folderPath . '/' . $imageName;
-        }
-
-        // Save the media partner with the image path
-        $mediaPartner->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Media Partner created successfully",
-            'data' => $mediaPartner,
-        ]);
+        $this->moduleSlug = "media-partner"; // Updated slug to "media-partner"
+        
+        // Model and Module name
+        $this->module = "media-partner";
+        $this->modelObj = new MediaPartner; // Updated to use MediaPartner model
+        $this->viewBase = 'Admin.' . $this->moduleSlug;
     }
 
-    // Get a list of all Media Partners
     public function index()
     {
         $mediaPartners = MediaPartner::all();
@@ -91,7 +44,7 @@ class MediaPartnerController extends Controller
 
         if ($mediaPartners->isNotEmpty()) {
             $mediaPartners = $mediaPartners->map(function ($item) {
-                $item->image = url('admin/uploads/media-partners/' . $item->id . '/' . basename($item->image));
+                $item->image = url('admin/uploads/media-partner/' . $item->id . '/' . basename($item->image));
                 return $item;
             });
         }
@@ -103,45 +56,14 @@ class MediaPartnerController extends Controller
         ]);
     }
 
-    // Show a specific Media Partner
-    public function show($id)
-    {
-        $mediaPartner = MediaPartner::find($id);
-
-        if ($mediaPartner) {
-            $mediaPartner->image = url('admin/uploads/media-partners/' . $mediaPartner->id . '/' . basename($mediaPartner->image));
-            return response()->json([
-                'status' => 'success',
-                'message' => "Media Partner retrieved successfully",
-                'data' => $mediaPartner,
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => "Media Partner not found",
-            'data' => [],
-        ]);
-    }
-
-    // Update a specific Media Partner
-    public function update(Request $request, $id)
-    {
-        $mediaPartner = MediaPartner::find($id);
-
-        if (!$mediaPartner) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Media Partner not found",
-                'data' => [],
-            ]);
-        }
-
+    public function store(Request $request)
+    {   
         $validator = Validator::make($request->all(), [
-            'name' => 'required|max:255',
-            'award_id' => 'required',
+            'name' => 'required|string|max:255',  // Updated fields
+            // 'award_id' => 'required|integer',
             'website_link' => 'required|url',
-            'description' => 'required',
+            'slug' => 'nullable|unique:media-partner,slug',
+            'description' => 'required|string',
             'status' => 'required|in:0,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
@@ -150,47 +72,131 @@ class MediaPartnerController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        try {
+            $mediaPartner = $this->modelObj::create([
+                'name' => $request->name,
+                'award_id' => $request->award_id,
+                'website_link' => $request->website_link,
+                'slug' => $request->slug,
+                'description' => $request->description,
+                'status' => $request->status,
+            ]);
+
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . rand(0, 9999999) . '.' . $image->getClientOriginalExtension();
+                $uploadPath = public_path('admin/uploads/media-partner/' . $mediaPartner->id);
+
+                if (\File::exists($uploadPath)) {
+                    \File::delete($uploadPath);
+                }
+                $filename = strtolower(str_replace(' ', '_', $image->getClientOriginalName()));
+                $image->move($uploadPath, $filename);
+                $mediaPartner->image = $filename;
+                $mediaPartner->save();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Media Partner created successfully',
+                'data' => $mediaPartner,
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Error occurred while creating Media Partner: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while creating the Media Partner',
+            ], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        $mediaPartner = $this->modelObj::find($id);
+
+        if (isset($mediaPartner)) {
+            $mediaPartner->image_path = url('admin/uploads/media-partner/' . $mediaPartner->id . '/' . $mediaPartner->image);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Media Partner",
+                'data' => $mediaPartner,
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => "No data found",
                 'data' => [],
             ]);
         }
+    }
 
-        // Update fields
-        $mediaPartner->name = $request->name;
-        $mediaPartner->award_id = $request->award_id;
-        $mediaPartner->website_link = $request->website_link;
-        $mediaPartner->description = $request->description;
-        $mediaPartner->status = $request->status;
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',  // Updated fields
+            'award_id' => 'required|integer',
+            'website_link' => 'required|url',
+            'slug' => 'nullable|unique:media-partner,slug,' . $id,
+            'description' => 'required|string',
+            'status' => 'required|in:0,1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $folderPath = 'admin/uploads/media-partners/' . $mediaPartner->id;
-
-            if (!file_exists(public_path($folderPath))) {
-                mkdir(public_path($folderPath), 0777, true);
-            }
-
-            // Delete the old image if it exists
-            if ($mediaPartner->image && file_exists(public_path($mediaPartner->image))) {
-                unlink(public_path($mediaPartner->image));
-            }
-
-            $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path($folderPath), $imageName);
-
-            // Save the new image path in the database
-            $mediaPartner->image = $folderPath . '/' . $imageName;
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
 
-        // Save the updated media partner
-        $mediaPartner->save();
+        try {
+            $mediaPartner = $this->modelObj::findOrFail($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => "Media Partner updated successfully",
-            'data' => $mediaPartner,
-        ]);
+            $data = [
+                'name' => $request->name,
+                'award_id' => $request->award_id,
+                'website_link' => $request->website_link,
+                'slug' => $request->slug,
+                'description' => $request->description,
+                'status' => $request->status,
+            ];
+
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . rand(0, 9999999) . '.' . $image->getClientOriginalExtension();
+                $uploadPath = public_path('admin/uploads/media-partner/' . $mediaPartner->id);
+
+                if (\File::exists($uploadPath)) {
+                    \File::delete($uploadPath);
+                }
+                $filename = strtolower(str_replace(' ', '_', $image->getClientOriginalName()));
+                $image->move($uploadPath, $filename);
+                $data['image'] = $filename;
+            }
+
+            $mediaPartner->update($data);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Media Partner updated successfully',
+                'data' => $mediaPartner,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while updating the Media Partner',
+            ], 500);
+        }
     }
+
 
     public function destroy($id)
     {
@@ -286,5 +292,4 @@ class MediaPartnerController extends Controller
             'data' => [],
         ]);
     }
-    
 }
