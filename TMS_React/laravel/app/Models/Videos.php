@@ -11,7 +11,9 @@ class Videos extends Authenticatable
 
     protected $table = 'tbl_videos';
 
-    protected $fillable = ['award_id', 'sponser_id', 'image', 'title', 'link', 'created_at'];
+    protected $fillable = [
+        'award_id', 'sponser_id', 'image', 'title', 'link', 'created_at'
+    ];
 
     /**
      * Get the award that the Videos is associated with.

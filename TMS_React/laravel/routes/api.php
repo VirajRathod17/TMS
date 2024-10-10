@@ -62,5 +62,11 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
             Route::delete('/news-delete-multiple', 'deleteMultiple')->name('news-delete-multiple-datatable');
 
         });
+
+        Route::resource('videos', 'VideosController');
+        Route::group(['controller' => 'VideosController'], function () {
+            Route::delete('/videos-delete-multiple', 'deleteMultiple')->name('videos-delete-multiple-datatable');
+
+        });
     }); 
 });
