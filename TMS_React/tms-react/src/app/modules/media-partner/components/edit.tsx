@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Form from './form';
-import '../../include/loader.css';
-import Loader from '../../include/loader';
 import Breadcrumb from '../../include/breadcrumbs';
 import {Helmet} from 'react-helmet';
+
 function Edit() {
-  const { id } = useParams(); // Assuming you get the ID from the URL
+  const { id } = useParams();
   const [initialValues, setInitialValues] = useState(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -18,8 +17,6 @@ function Edit() {
   }, [pageTitle]); 
 
   useEffect(() => {
-
-    // Fetch existing data for the item to be edited
     const fetchMediaPartner = async () => {
       setLoading(true);
       const token = localStorage.getItem('jwt_token');
@@ -31,29 +28,24 @@ function Edit() {
           },
         }
       );
-      
-      // Log the response to check the data structure
-      console.log(response.data); // Add this line to debug
-      
       if (response.data) {
-        setInitialValues(response.data.data); // Ensure this matches your FormValues structure
+        setInitialValues(response.data.data);
         setLoading(false);
       }
     };
-    
     fetchMediaPartner();
   }, [id]);
 
-
   const breadcrumb = [
-    {label:'Manage Media Partner', url: '/media_partner'},
+    {label:'Manage Media Partner', url: '/media-partner'},
     {label:'Edit Media Partner', url: ''},
   ]
+
   return (
     <div className="d-flex flex-column flex-column-fluid">
-       <Helmet>
-            <title>{pageTitle ? pageTitle : ''}</title>
-        </Helmet>
+      <Helmet>
+        <title>{pageTitle ? pageTitle : ''}</title>
+      </Helmet>
       <div id="kt_app_toolbar" className="app-toolbar">
         <div id="kt_app_toolbar_container" className="app-container">
           <Breadcrumb breadcrumbs={breadcrumb} />
@@ -61,7 +53,8 @@ function Edit() {
       </div>
       <div id="kt_app_content" className="app-content flex-column-fluid mt-6">
         <div id="kt_app_content_container" className="app-container">
-          {initialValues ? (
+          {/* {initialValues ? ( */}
+		      {initialValues && (
             <Form
               mode="edit"
               initialValues={initialValues}
@@ -70,9 +63,7 @@ function Edit() {
               successMessage="Media Partner has been updated successfully"
               pageTitle={pageTitle}
             />
-          ) : (
-          loading &&  <Loader />
-          )}
+		      )}
         </div>
       </div>
     </div>

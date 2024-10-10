@@ -4,80 +4,53 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Validator;
-use App\Models\News; // Assuming your model is News
-use Illuminate\Support\Facades\Storage;
+use App\Models\News; // Assuming you have a News model
+use DataTables;
+use Illuminate\Support\Facades\Log;
 
 class NewsController extends Controller
 {
-    // Store a new News
-    public function store(Request $request)
+    protected $moduleSlug;
+    protected $module;
+    protected $modelObj;
+    protected $viewBase;
+
+    public function __construct()
     {
-        // // Validate incoming request
-        $validator = Validator::make($request->all(), [
-
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'slug' => 'nullable|unique:news,slug',
-            'date' => 'nullable|date',
-            'location' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'status' => 'required|in:0,1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()->first(),
-                'data' => [],
-            ]);
-        }
-
-        // echo "<pre>";
-        // print_r($validator);
-        // echo "</pre>";
-        // Create a new news record
-        $news = new News();
-        $news->title = $request->title; // Change to the new field
-        $news->date = $request->date;
-        $news->location = $request->location;
-        $news->slug = $request->slug;
-        $news->description = $request->description;
-        $news->status = $request->status;
-
-        // Save to get ID for image folder
-        $news->save();
-
-        // Handle the image upload
-        if ($request->hasFile('image')) {
-            $folderPath = 'admin/uploads/news/' . $news->id;
-
-            // Ensure directory exists
-            if (!file_exists(public_path($folderPath))) {
-                mkdir(public_path($folderPath), 0777, true);
-            }
-
-            $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-
-            // Move the image to the public folder
-            $image->move(public_path($folderPath), $imageName);
-
-            // Save the image path in the database
-            $news->image = $folderPath . '/' . $imageName;
-        }
-
-        // Save the news with the image path
-        $news->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "News created successfully",
-            'data' => $news,
-        ]);
+        $this->moduleSlug = "news"; // Updated to "news"
+        
+        // Model and Module name
+        $this->module = "news";
+        $this->modelObj = new News; // Updated to use News model
+        $this->viewBase = 'Admin.' . $this->moduleSlug;
     }
 
-    // Get a list of all News
+    // public function index()
+    // {
+    //     $newsItems = $this->modelObj::all();
+
+    //     if ($newsItems->isNotEmpty()) {
+
+    //         $newsItems = $newsItems->map(function ($item) {
+    //             $item->image_path = url('admin/uploads/news/' . $item->id . '/' . $item->image);
+    //             return $item;
+    //         });
+
+    //         $this->responseData['status'] = 'success';
+    //         $this->responseData['message'] = "News";
+    //         $this->responseData['data'] = $newsItems;
+    //         return response()->json($this->responseData);
+    //     } else {
+    //         $this->responseData['status'] = 'error';
+    //         $this->responseData['message'] = "No data found";
+    //         $this->responseData['data'] = [];
+    //         return response()->json($this->responseData);
+    //     }
+    // }
+
+
     public function index()
     {
         $newsItems = News::all();
@@ -103,43 +76,10 @@ class NewsController extends Controller
         ]);
     }
 
-    // Show a specific News
-    public function show($id)
-    {
-        $newsItem = News::find($id);
-
-        if ($newsItem) {
-            $newsItem->image = url('admin/uploads/news/' . $newsItem->id . '/' . basename($newsItem->image));
-            return response()->json([
-                'status' => 'success',
-                'message' => "News retrieved successfully",
-                'data' => $newsItem,
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => "News not found",
-            'data' => [],
-        ]);
-    }
-
-    // Update a specific News
-    public function update(Request $request, $id)
-    {
-        $newsItem = News::find($id);
-
-        if (!$newsItem) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "News not found",
-                'data' => [],
-            ]);
-        }
-
+    public function store(Request $request)
+    {   
         $validator = Validator::make($request->all(), [
-
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:255',  // Updated fields
             'description' => 'nullable|string',
             'slug' => 'nullable|unique:news,slug',
             'date' => 'nullable|date',
@@ -152,47 +92,147 @@ class NewsController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->first(),
-                'data' => [],
+            ], 422);
+        }
+
+        try {
+            $newsItem = $this->modelObj::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'slug' => $request->slug,
+                'date' => $request->date,
+                'location' => $request->location,
+                'status' => $request->status,
             ]);
-        }
-        
 
-        $newsItem->title = $request->title; 
-        $newsItem->date = $request->date;
-        $newsItem->location = $request->location;
-        $newsItem->description = $request->description;
-        $newsItem->status = $request->status;
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . rand(0, 9999999) . '.' . $image->getClientOriginalExtension();
+                $uploadPath = public_path('admin/uploads/news/' . $newsItem->id);
 
-
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $folderPath = 'admin/uploads/news/' . $newsItem->id;
-
-            if (!file_exists(public_path($folderPath))) {
-                mkdir(public_path($folderPath), 0777, true);
+                if (\File::exists($uploadPath)) {
+                    \File::delete($uploadPath);
+                }
+                $filename = strtolower(str_replace(' ', '_', $image->getClientOriginalName()));
+                $image->move($uploadPath, $filename);
+                $newsItem->image = $filename;
+                $newsItem->save();
             }
 
-            // Delete the old image if it exists
-            if ($newsItem->image && file_exists(public_path($newsItem->image))) {
-                unlink(public_path($newsItem->image));
-            }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'News created successfully',
+                'data' => $newsItem,
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Error occurred while creating News: ' . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->all()
+            ]);
 
-            $image = $request->file('image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path($folderPath), $imageName);
-
-            // Save the new image path in the database
-            $newsItem->image = $folderPath . '/' . $imageName;
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while creating the News',
+            ], 500);
         }
+    }
 
-        // Save the updated news item
-        $newsItem->save();
+    public function show($id)
+    {
+        $newsItem = $this->modelObj::find($id);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => "News updated successfully",
-            'data' => $newsItem,
+        if (isset($newsItem)) {
+            $newsItem->image_path = url('admin/uploads/news/' . $newsItem->id . '/' . $newsItem->image);
+
+            $this->responseData['status'] = 'success';
+            $this->responseData['message'] = "News";
+            $this->responseData['data'] = $newsItem;
+            return response()->json($this->responseData);
+        } else {
+            $this->responseData['status'] = 'error';
+            $this->responseData['message'] = "No data found";
+            $this->responseData['data'] = [];
+            return response()->json($this->responseData);
+        }
+    }
+
+    // public function show($id)
+    // {
+    //     $newsItem = News::find($id);
+
+    //     if ($newsItem) {
+    //         $newsItem->image = url('admin/uploads/news/' . $newsItem->id . '/' . basename($newsItem->image));
+    //         return response()->json([
+    //             'status' => 'success',
+    //             'message' => "News retrieved successfully",
+    //             'data' => $newsItem,
+    //         ]);
+    //     }
+
+    //     return response()->json([
+    //         'status' => 'error',
+    //         'message' => "News not found",
+    //         'data' => [],
+    //     ]);
+    // }
+
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',  // Updated fields
+            'description' => 'nullable|string',
+            'slug' => 'nullable|unique:news,slug,' . $id,
+            'date' => 'nullable|date',
+            'location' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'status' => 'required|in:0,1',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        try {
+            $newsItem = $this->modelObj::findOrFail($id);
+
+            $data = [
+                'title' => $request->title,
+                'description' => $request->description,
+                'slug' => $request->slug,
+                'date' => $request->date,
+                'location' => $request->location,
+                'status' => $request->status,
+            ];
+
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . rand(0, 9999999) . '.' . $image->getClientOriginalExtension();
+                $uploadPath = public_path('admin/uploads/news/' . $newsItem->id);
+
+                if (\File::exists($uploadPath)) {
+                    \File::delete($uploadPath);
+                }
+                $filename = strtolower(str_replace(' ', '_', $image->getClientOriginalName()));
+                $image->move($uploadPath, $filename);
+                $data['image'] = $filename;
+            }
+
+            $newsItem->update($data);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'News updated successfully',
+                'data' => $newsItem,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while updating the News',
+            ], 500);
+        }
     }
 
     public function destroy($id)

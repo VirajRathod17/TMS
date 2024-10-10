@@ -11,7 +11,9 @@ function Create() {
     status: '',
     description: '',
     image: null, 
-  };
+    image_path: '', 
+   };
+
 
   const pageTitle = 'Add Media Partner';
 
