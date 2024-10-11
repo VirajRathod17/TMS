@@ -9,6 +9,7 @@ import DataTable from 'react-data-table-component';
 import Breadcrumb from '../../include/breadcrumbs';
 import Pagination from '../../include/pagination';
 import useFetchMediaPartners from './fatchmedia-partner';
+import Search from './Search';
 
 interface MediaPartner {
   id: number;
@@ -26,14 +27,59 @@ const Index: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+
+  const [nameSearchTerm, setNameSearchTerm] = useState('');
+  const [dateSearchTerm, setDateSearchTerm] = useState('');
+  const [statusSearchTerm, setStatusSearchTerm] = useState('');
+  const [filteredMediaPartners, setFilteredMediaPartners] = useState<MediaPartner[]>(mediaPartners);
+
   const pageTitle = 'Manage Media Partners';
   const module = 'media-partner';
   const moduleTitle = 'Media Partner';
 
   useEffect(() => {
     document.title = pageTitle;
-    setTotalPages(Math.ceil(mediaPartners.length / itemsPerPage));
-  }, [pageTitle, mediaPartners, itemsPerPage]);
+    // Update the total pages whenever the filtered media partners change
+    setTotalPages(Math.ceil(filteredMediaPartners.length / itemsPerPage));
+  }, [pageTitle, filteredMediaPartners, itemsPerPage]);
+
+  useEffect(() => {
+    setFilteredMediaPartners(mediaPartners); // Set initial filtered media partners
+  }, [mediaPartners]);
+
+  // Search handlers
+  const handleNameSearchChange = (term: string) => {
+    setNameSearchTerm(term);
+  };
+
+  const handleDateSearchChange = (term: string) => {
+    setDateSearchTerm(term);
+  };
+
+  const handleStatusSearchChange = (term: string) => {
+    setStatusSearchTerm(term);
+  };
+
+  const handleSearch = () => {
+    const filtered = mediaPartners
+      .filter(partner => partner.name.toLowerCase().includes(nameSearchTerm.toLowerCase()))
+      .filter(partner => formatDate(partner.date).includes(dateSearchTerm))
+      .filter(partner => 
+        statusSearchTerm === '' || partner.status.toLowerCase() === statusSearchTerm
+      );
+
+    setFilteredMediaPartners(filtered);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  // New reset handler
+  const handleReset = () => {
+    setNameSearchTerm('');
+    setDateSearchTerm('');
+    setStatusSearchTerm('');
+    setFilteredMediaPartners(mediaPartners); // Reset to the original list
+    setCurrentPage(1); // Reset to first page
+  };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const mediaPartnerId = parseInt(e.target.value, 10);
@@ -53,7 +99,7 @@ const Index: React.FC = () => {
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`;
   };
 
-  const currentMediaPartners = mediaPartners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentMediaPartners = filteredMediaPartners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handlePageChange = (page: number) => setCurrentPage(page);
   const handleItemsPerPageChange = (items: number) => {
@@ -82,15 +128,16 @@ const Index: React.FC = () => {
         });
         Swal.fire('Deleted!', response.data.message, 'success');
         setMediaPartners((prev) => prev.filter((partner) => partner.id !== id));
+        // Update the filtered media partners as well
+        setFilteredMediaPartners((prev) => prev.filter((partner) => partner.id !== id));
       } catch (error) {
         console.error('Error deleting Media Partner:', error);
         Swal.fire('Error!', 'There was an error deleting the media partner.', 'error');
       }
     }
-  };
+  }
   
-
-const deleteMultiple = async () => {
+  const deleteMultiple = async () => {
     if (selectedMediaPartners.length === 0) {
         Swal.fire('No media partners selected', 'Please select media partners to delete.', 'warning');
         return;
@@ -118,6 +165,7 @@ const deleteMultiple = async () => {
             
             Swal.fire('Deleted!', response.data.message, 'success');
             setMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id)));
+            setFilteredMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id))); // Update filtered list
             setSelectedMediaPartners([]);
             setIsSelectAll(false);
         } catch (error) {
@@ -126,6 +174,7 @@ const deleteMultiple = async () => {
         }
     }
 };
+  
   const breadcrumbs = [{ label: 'Manage Media Partners', url: '' }];
 
   const columns = [
@@ -135,19 +184,13 @@ const deleteMultiple = async () => {
         <input
           className="form-check-input"
           type="checkbox"
-          value={row.id.toString()}
+          value={row.id}
           checked={selectedMediaPartners.includes(row.id)}
           onChange={handleCheckboxChange}
         />
       ),
       sortable: false,
-      width: '80px',
-    },
-    {
-      name: 'ID',
-      selector: (row: MediaPartner) => row.id,
-      sortable: true,
-      width: '80px',
+      width: '50px',
     },
     {
       name: 'Name',
@@ -168,7 +211,6 @@ const deleteMultiple = async () => {
       width: '150px',
     },
     {
-      name: 'Date',
       selector: (row: MediaPartner) => formatDate(row.date),
       sortable: true,
       width: '150px',
@@ -177,13 +219,13 @@ const deleteMultiple = async () => {
       name: 'Action',
       cell: (row: MediaPartner) => (
         <>
-         <Link to={`/media-partner/view/${row.id}`} className="btn-info btn btn-sm btn-icon btn-light me-2">
+          <Link to={`/media-partner/view/${row.id}`} className="btn-info btn btn-sm btn-icon btn-light me-2">
             <i className="fas fa-eye"></i>
           </Link>
-          <Link to={`/media-partner/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
+          <Link to={`/media-partner/edit/${row.id}`} className="btn-warning btn btn-sm btn-icon btn-light me-2">
             <i className="fas fa-edit"></i>
           </Link>
-          <button onClick={() => deleteMediaPartner(row.id)} className="btn-danger btn btn-sm btn-icon btn-light">
+          <button className="btn-danger btn btn-sm btn-icon btn-light" onClick={() => deleteMediaPartner(row.id)}>
             <i className="fas fa-trash"></i>
           </button>
         </>
@@ -255,23 +297,35 @@ const deleteMultiple = async () => {
                     </div>
                   )}
                 </div>
+
+                {/* Add the Search component here */}
+                <Search
+                  nameSearchTerm={nameSearchTerm}
+                  dateSearchTerm={dateSearchTerm}
+                  statusSearchTerm={statusSearchTerm}
+                  onNameSearchChange={handleNameSearchChange}
+                  onDateSearchChange={handleDateSearchChange}
+                  onStatusSearchChange={handleStatusSearchChange}
+                  onSearch={handleSearch} // Pass the search handler
+                  onReset={handleReset} // Pass the reset handler
+                />
+                
                 <DataTable
                   columns={columns}
                   data={currentMediaPartners}
-                  
-                  
-                  paginationTotalRows={mediaPartners.length}
+                  paginationTotalRows={filteredMediaPartners.length}
                   onChangePage={handlePageChange}
                   onChangeRowsPerPage={handleItemsPerPageChange}
                   customStyles={customStyles}
                 />
-               <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={handlePageChange}
-                        itemsPerPage={itemsPerPage}
-                        onItemsPerPageChange={handleItemsPerPageChange}
-                      />
+                
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  itemsPerPage={itemsPerPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
+                />
               </div>
             </div>
           </div>

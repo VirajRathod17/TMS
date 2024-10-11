@@ -167,20 +167,28 @@ const Index: React.FC = () => {
       sortable: false,
       width: '100px',
     },
-    {
-      name: 'Link',
-      cell: (row: VideoType) => (
-        <a href={row.link} target="_blank" rel="noopener noreferrer">
-          Watch Video
-        </a>
-      ),
-      sortable: false,
-      width: '150px',
-    },
+    // {
+    //   name: 'Link',
+    //   cell: (row: VideoType) => (
+    //     <a href={row.link} target="_blank" rel="noopener noreferrer">
+    //       Watch Video
+    //     </a>
+    //   ),
+    //   sortable: false,
+    //   width: '150px',
+    // },
     {
       name: 'Action',
       cell: (row: VideoType) => (
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <a 
+        href={row.link} // Assuming row.link contains the URL
+        target="_blank" // Open in a new tab
+        rel="noopener noreferrer" // Security improvement
+        className="btn-danger btn btn-sm btn-icon btn-light me-2" // Same button styling
+      >
+        <i className="fas fa-external-link-alt"></i> {/* Optional icon */}
+      </a>
           <Link to={`/videos/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
             <i className="fas fa-edit"></i>
           </Link>
