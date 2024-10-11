@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';  // Import useParams
 import useFetchMediaPartners from './fatchmedia-partner';
 import Loader from '../../include/loader';
 import '../../include/loader.css';
@@ -6,40 +7,42 @@ import '../../include/loader.css';
 interface MediaPartner {
     id: number;
     name: string;
-    website_link?: string;  // Mark as optional
-    image?: string;         // Mark as optional
-    award_id?: number;      // Mark as optional
-    description?: string;    // Mark as optional
+    website_link?: string;  // Optional fields
+    image?: string;
+    award_id?: number;
+    description?: string;
     status: string;
     date: string;
 }
 
 const getMediaPartnerImage = (id: number, img_name: string, size: string | null) => {
+    if (img_name.startsWith('http://') || img_name.startsWith('https://')) {
+        return img_name;
+    }
     if (id > 0 && img_name) {
-        // Construct the image path based on size
         return size
             ? `${process.env.REACT_APP_API_URL}/storage/media_partners/${id}/thumb_${size}_${img_name}`
             : `${process.env.REACT_APP_API_URL}/storage/media_partners/${id}/${img_name}`;
     }
-    // Fallback to a default image if no valid image is provided
     return `${process.env.REACT_APP_API_URL}/storage/Admin/uploads/noimg.png`;
 };
 
+const stripHtmlTags = (text: string) => {
+    return text.replace(/<\/?[^>]+(>|$)/g, ""); // Remove HTML tags
+  };
+
 const View: React.FC = () => {
+    const { id } = useParams<{ id: string }>();  // Capture the id from the URL
     const { mediaPartners, loading } = useFetchMediaPartners();
     const [currentPartner, setCurrentPartner] = useState<MediaPartner | null>(null);
 
     useEffect(() => {
-        if (mediaPartners.length > 0) {
-            // Set the first media partner as the default selected partner
-            setCurrentPartner(mediaPartners[0]);
+        if (mediaPartners.length > 0 && id) {
+            // Find the media partner by id
+            const partner = mediaPartners.find((partner) => partner.id === parseInt(id, 10));
+            setCurrentPartner(partner || null);  // Set the correct partner or null if not found
         }
-    }, [mediaPartners]);
-
-    const formatDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`;
-    };
+    }, [mediaPartners, id]);
 
     if (loading) {
         return <Loader />;
@@ -49,10 +52,8 @@ const View: React.FC = () => {
         return <div>No media partner found.</div>;
     }
 
-    // Extract image details
-    const img_name = currentPartner.image || 'default.png'; // Fallback image name if none provided
-    const thumbImage = getMediaPartnerImage(currentPartner.id, img_name, '100x100'); // Thumbnail size
-    const originalImage = getMediaPartnerImage(currentPartner.id, img_name, null); // Original size
+    const img_name = currentPartner.image || 'default.png';
+    const originalImage = getMediaPartnerImage(currentPartner.id, img_name, null);
 
     return (
         <div className="d-flex flex-column flex-column-fluid">
@@ -78,10 +79,15 @@ const View: React.FC = () => {
                             <div className="card-body p-9">
                                 <div className="row mb-7">
                                     <div className="col-lg-8">
-                                        <div className="image-input image-input-outline mt-0" data-kt-image-input="true">
-                                            <div className="image-input-wrapper w-100px h-100px" style={{ backgroundImage: `url(${thumbImage})` }}></div>
-                                            <a data-fancybox="gallery" href={originalImage} className="stretched-link"></a>
-                                        </div>
+                                        <a href={originalImage} target="_blank" rel="noopener noreferrer">
+                                            <img
+                                                src={originalImage}
+                                                alt={currentPartner.name}
+                                                className="img-fluid"
+                                                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                                            />
+
+                                        </a>
                                     </div>
                                 </div>
                                 <div className="row mb-7">
@@ -111,7 +117,7 @@ const View: React.FC = () => {
                                 <div className="row mb-12">
                                     <label className="col-lg-3 fw-semibold text-muted">Description</label>
                                     <div className="col-lg-8">
-                                        <span className="fw-bold fs-6 text-gray-800">{currentPartner.description || '--'}</span>
+                                        <span className="fw-bold fs-6 text-gray-800">    {currentPartner.description ? currentPartner.description.replace(/<[^>]+>/g, '') : '--'}</span>
                                     </div>
                                 </div>
                             </div>
