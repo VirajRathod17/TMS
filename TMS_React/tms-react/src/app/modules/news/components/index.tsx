@@ -9,42 +9,102 @@ import DataTable from 'react-data-table-component';
 import Breadcrumb from '../../include/breadcrumbs';
 import Pagination from '../../include/pagination';
 import useFetchNews from './fatchnews';
-import { News as NewsType } from './fatchnews'; // Ensure consistent import
+import Search from './Search';
+import { News as NewsType } from './fatchnews';
+
+interface News {
+  id: number;
+  title: string; // Changed from name to title
+  image: string;
+  location: number; // Changed from award_id to location
+  status: string;
+  date: string;
+}
 
 const Index: React.FC = () => {
   const { news, loading, setnews } = useFetchNews();
-  const [selectednews, setSelectednews] = useState<number[]>([]);
+  const [selectedNews, setSelectedNews] = useState<number[]>([]); // Updated state to reflect 'News'
   const [isSelectAll, setIsSelectAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const pageTitle = 'Manage News';
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const [titleSearchTerm, setTitleSearchTerm] = useState(''); // Updated to titleSearchTerm
+  const [dateSearchTerm, setDateSearchTerm] = useState('');
+  const [statusSearchTerm, setStatusSearchTerm] = useState('');
+  const [filteredNews, setFilteredNews] = useState<News[]>(news); // Updated to filteredNews
+
+  const pageTitle = 'Manage News'; // Updated page title
+  const module = 'news'; // Updated module name
+  const moduleTitle = 'News'; // Updated module title
 
   useEffect(() => {
     document.title = pageTitle;
-    setTotalPages(Math.ceil(news.length / itemsPerPage));
-  }, [pageTitle, news, itemsPerPage]);
+    setTotalPages(Math.ceil(filteredNews.length / itemsPerPage));
+  }, [pageTitle, filteredNews, itemsPerPage]);
 
+  useEffect(() => {
+    setFilteredNews(news); // Set initial filtered news
+  }, [news]);
+
+  // Search handlers
+  const handleTitleSearchChange = (term: string) => {
+    setTitleSearchTerm(term); // Updated to handleTitleSearchChange
+  };
+
+  const handleDateSearchChange = (term: string) => {
+    setDateSearchTerm(term);
+  };
+
+  const handleStatusSearchChange = (term: string) => {
+    setStatusSearchTerm(term);
+  };
+
+  const handleSearch = () => {
+    const filtered = news
+      .filter(news => news.title.toLowerCase().includes(titleSearchTerm.toLowerCase())) // Updated to title
+      .filter(news => formatDate(news.date).includes(dateSearchTerm)) // Updated to date
+      .filter(news =>
+        statusSearchTerm === '' || news.status.toLowerCase() === statusSearchTerm
+      );
+
+    setFilteredNews(filtered);
+    setCurrentPage(1); // Reset to the first page
+  };
+
+  // New reset handler
+  const handleReset = () => {
+    setTitleSearchTerm(''); // Updated to reset titleSearchTerm
+    setDateSearchTerm('');
+    setStatusSearchTerm('');
+    setFilteredNews(news); // Reset to the original list
+    setCurrentPage(1); // Reset to first page
+  };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newId = parseInt(e.target.value, 10);
-    setSelectednews((prev) => 
-      e.target.checked ? [...prev, newId] : prev.filter((id) => id !== newId)
+    const newsId = parseInt(e.target.value, 10);
+    setSelectedNews((prev) =>
+      e.target.checked ? [...prev, newsId] : prev.filter((id) => id !== newsId)
     );
   };
 
   const handleSelectAllChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     setIsSelectAll(checked);
-    setSelectednews(checked ? news.map((partner) => partner.id) : []);
+    setSelectedNews(checked ? news.map((news) => news.id) : []);
   };
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return ''; // Return empty string if the date is invalid
+    }
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`;
   };
 
-  const currentnews = news.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentNews = filteredNews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handlePageChange = (page: number) => setCurrentPage(page);
   const handleItemsPerPageChange = (items: number) => {
@@ -52,18 +112,18 @@ const Index: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const deletenew = async (id: number) => {
+  const deleteNews = async (id: number) => {
     const token = localStorage.getItem('jwt_token');
     const confirmed = await Swal.fire({
       title: 'Are you sure?',
-      text: "Do you really want to delete this Media Partner?",
+      text: "Do you really want to delete this News?",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!',
     });
-  
+
     if (confirmed.isConfirmed) {
       try {
         const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}news/${id}`, {
@@ -72,175 +132,153 @@ const Index: React.FC = () => {
           },
         });
         Swal.fire('Deleted!', response.data.message, 'success');
-        setnews((prev) => prev.filter((partner) => partner.id !== id));
+        setnews((prev) => prev.filter((news) => news.id !== id));
+        setFilteredNews((prev) => prev.filter((news) => news.id !== id)); // Update filtered news
       } catch (error) {
-        console.error('Error deleting Media Partner:', error);
-        Swal.fire('Error!', 'There was an error deleting the media partner.', 'error');
+        console.error('Error deleting News:', error);
+        Swal.fire('Error!', 'There was an error deleting the news.', 'error');
       }
     }
   };
-  
 
-const deleteMultiple = async () => {
-    if (selectednews.length === 0) {
-        Swal.fire('No News selected', 'Please select News to delete.', 'warning');
-        return;
+  const deleteMultiple = async () => {
+    if (selectedNews.length === 0) {
+      Swal.fire('No news selected', 'Please select news to delete.', 'warning');
+      return;
     }
 
     const confirmed = await Swal.fire({
-        title: 'Are you sure?',
-        text: `You are about to delete selected News.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete them!',
+      title: 'Are you sure?',
+      text: `You are about to delete selected news.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete them!',
     });
 
     if (confirmed.isConfirmed) {
-        const token = localStorage.getItem('jwt_token');
-        try {
-            const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}news-delete-multiple`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                data: { ids: selectednews },
-            });
-            
-            Swal.fire('Deleted!', response.data.message, 'success');
-            setnews((prev) => prev.filter((partner) => !selectednews.includes(partner.id)));
-            setSelectednews([]);
-            setIsSelectAll(false);
-        } catch (error) {
-            console.error('Error deleting News:', error);
-            Swal.fire('Error!', 'There was an error deleting the News.', 'error');
-        }
-    }
-};
+      const token = localStorage.getItem('jwt_token');
+      try {
+        const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}news-delete-multiple`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: { ids: selectedNews },
+        });
 
-  const breadcrumbs = [{ label: 'Manage News', url: '' }];
+        Swal.fire('Deleted!', response.data.message, 'success');
+        setnews((prev) => prev.filter((news) => !selectedNews.includes(news.id)));
+        setFilteredNews((prev) => prev.filter((news) => !selectedNews.includes(news.id))); // Update filtered list
+        setSelectedNews([]);
+        setIsSelectAll(false);
+      } catch (error) {
+        console.error('Error deleting news:', error);
+        Swal.fire('Error!', 'There was an error deleting the news.', 'error');
+      }
+    }
+  };
+
+  const breadcrumbs = [{ label: 'Manage News', url: '' }]; // Updated breadcrumbs
 
   const columns = [
     {
       name: <input className="form-check-input" type="checkbox" checked={isSelectAll} onChange={handleSelectAllChange} />,
-      cell: (row: NewsType) => (
+      cell: (row: News) => (
         <input
           className="form-check-input"
           type="checkbox"
-          value={row.id.toString()}
-          checked={selectednews.includes(row.id)}
+          value={row.id}
+          checked={selectedNews.includes(row.id)}
           onChange={handleCheckboxChange}
         />
       ),
       sortable: false,
-      width: '80px',
+      width: '50px',
     },
     {
       name: 'ID',
-      selector: (row: NewsType) => row.id,
+      selector: (row: News) => row.id.toString(),
       sortable: true,
-      width: '80px',
-    },
-    {
-      name: 'Title', // Updated from 'Name' to 'Title'
-      selector: (row: NewsType) => row.title, // Updated to use 'title'
-      sortable: true,
-      width: '200px',
+      width: '100px',
     },
     {
       name: 'Date',
-      selector: (row: NewsType) => formatDate(row.date),
+      selector: (row: News) => formatDate(row.date), // Updated to date
       sortable: true,
       width: '150px',
     },
     {
-      name: 'Image',
-      cell: (row: NewsType) => <img src={row.image} alt={row.title} style={{ width: '50px', height: '50px' }} />, // Updated alt text
-      sortable: false,
-      width: '100px',
+      name: 'Title', // Updated from Name to Title
+      selector: (row: News) => row.title, // Updated to title
+      sortable: true,
+      width: '200px',
     },
     {
-      name: 'Location', // New column for location
-      selector: (row: NewsType) => row.location,
+      name: 'Logo',
+      cell: (row: News) => <img src={row.image} alt={row.title} style={{ width: '50px', height: '50px' }} />, // Updated to title
+      sortable: false,
+      width: '150px',
+    },
+    {
+      name: 'Location', // Updated from Award Year to Location
+      selector: (row: News) => row.location, // Updated to location
       sortable: true,
       width: '150px',
     },
     {
       name: 'Status',
-      selector: (row: NewsType) => row.status,
+      selector: (row: News) => row.status,
       sortable: true,
-      width: '150px',
+      width: '100px',
     },
-    
     {
-      name: 'Action',
-      cell: (row: NewsType) => (
+      name: 'Actions',
+      cell: (row: News) => (
         <>
-         <Link to={`/news/view/${row.id}`} className="btn-info btn btn-sm btn-icon btn-light me-2">
-            <i className="fas fa-eye"></i>
-          </Link>
-          <Link to={`/news/edit/${row.id}`} className="btn-primary btn btn-sm btn-icon btn-light me-2">
-            <i className="fas fa-edit"></i>
-          </Link>
-          <button onClick={() => deletenew(row.id)} className="btn-danger btn btn-sm btn-icon btn-light">
-            <i className="fas fa-trash"></i>
-          </button>
+          <Link className="btn btn-info btn-sm" to={`edit/${row.id}`}>Edit</Link>
+          <button className="btn btn-danger btn-sm" onClick={() => deleteNews(row.id)}>Delete</button>
         </>
       ),
-      style: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-      },
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+      width: '150px',
     },
   ];
-
-  const customStyles = {
-    rows: {
-      style: {
-        minHeight: '72px',
-        borderBottom: '#dee2e6',
-      },
-    },
-    headCells: {
-      style: {
-        paddingLeft: '16px',
-        paddingRight: '16px',
-        fontWeight: 'bold',
-        fontSize: '1rem',
-        color: '#495057',
-      },
-    },
-    cells: {
-      style: {
-        paddingLeft: '16px',
-        paddingRight: '16px',
-        fontSize: '0.875rem',
-        color: '#212529',
-      },
-    },
-  };
 
   if (loading) {
     return <Loader />;
   }
 
   return (
-    <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
+    <div className="container-fluid">
       <Helmet>
-        <title>{pageTitle ? pageTitle : ''}</title>
+        <title>{pageTitle}</title>
       </Helmet>
-      <div className="d-flex flex-column flex-column-fluid">
-        <div id="kt_app_toolbar" className="app-toolbar mb-5">
-          <Breadcrumb breadcrumbs={breadcrumbs} />
+      <Breadcrumb breadcrumbs={breadcrumbs} />
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h1>{moduleTitle}</h1>
         </div>
+          <Search
+            titleSearchTerm={titleSearchTerm} // Updated
+            dateSearchTerm={dateSearchTerm}
+            statusSearchTerm={statusSearchTerm}
+            onTitleSearchChange={handleTitleSearchChange} // Updated
+            onDateSearchChange={handleDateSearchChange}
+            onStatusSearchChange={handleStatusSearchChange}
+            onSearch={handleSearch}
+            onReset={handleReset} // Updated
+          />
+        
         <div id="kt_app_content" className="app-content flex-column-fluid">
           <div id="kt_app_content_container" className="app-container">
             <div className="card card-flush mb-5">
               <div className="card-body pt-5">
                 <div className="d-flex justify-content-between align-items-center mb-5">
                   <h2 className="mb-0">{pageTitle}</h2>
-                  {selectednews.length === 0 ? (
-                    <Link to="/news/create" className="btn btn-primary">
+                  {selectedNews.length === 0 ? (
+                    <Link to="/media-partner/create" className="btn btn-primary">
                       Add
                     </Link>
                   ) : (
@@ -248,20 +286,26 @@ const deleteMultiple = async () => {
                       <button className="btn btn-danger me-2" onClick={deleteMultiple}>
                         Delete Selected
                       </button>
-                      <button className="btn btn-light" onClick={() => setSelectednews([])}>
+                      <button className="btn btn-light" onClick={() => setSelectedNews([])}>
                         Cancel
                       </button>
                     </div>
                   )}
                 </div>
+
                 <DataTable
                   columns={columns}
-                  data={currentnews}
-                  paginationTotalRows={news.length}
+                  data={currentNews}
+                  pagination
+                  paginationServer
+                  paginationTotalRows={filteredNews.length}
                   onChangePage={handlePageChange}
                   onChangeRowsPerPage={handleItemsPerPageChange}
-                  customStyles={customStyles}
+                  striped
+                  highlightOnHover
+                  pointerOnHover
                 />
+
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -269,12 +313,14 @@ const deleteMultiple = async () => {
                   itemsPerPage={itemsPerPage}
                   onItemsPerPageChange={handleItemsPerPageChange}
                 />
+
+                
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+   
   );
 };
 

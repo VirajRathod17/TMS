@@ -9,6 +9,7 @@ export interface MediaPartner {
     award_id: number;
     status: string;
     date: string;
+    created_at: string; 
   }
 
 const useFetchMediaPartners = () => {

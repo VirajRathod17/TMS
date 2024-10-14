@@ -18,6 +18,7 @@ interface MediaPartner {
   award_id: number;
   status: string;
   date: string;
+  created_at: string;
 }
 
 const Index: React.FC = () => {
@@ -27,6 +28,8 @@ const Index: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [fromDate, setFromDate] = useState('');
+const [toDate, setToDate] = useState('');
 
   const [nameSearchTerm, setNameSearchTerm] = useState('');
   const [dateSearchTerm, setDateSearchTerm] = useState('');
@@ -64,7 +67,7 @@ const Index: React.FC = () => {
     const filtered = mediaPartners
       .filter(partner => partner.name.toLowerCase().includes(nameSearchTerm.toLowerCase()))
       .filter(partner => formatDate(partner.date).includes(dateSearchTerm))
-      .filter(partner => 
+      .filter(partner =>
         statusSearchTerm === '' || partner.status.toLowerCase() === statusSearchTerm
       );
 
@@ -83,7 +86,7 @@ const Index: React.FC = () => {
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const mediaPartnerId = parseInt(e.target.value, 10);
-    setSelectedMediaPartners((prev) => 
+    setSelectedMediaPartners((prev) =>
       e.target.checked ? [...prev, mediaPartnerId] : prev.filter((id) => id !== mediaPartnerId)
     );
   };
@@ -94,10 +97,24 @@ const Index: React.FC = () => {
     setSelectedMediaPartners(checked ? mediaPartners.map((partner) => partner.id) : []);
   };
 
+  // const formatDate = (dateString: string): string => {
+  //   const date = new Date(dateString);
+  //   return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`;
+  // };
+
+  // Date formatting function with error handling
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return ''; // Return empty string if the date is invalid
+    }
+
+    // Format the date as DD-MM-YY
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getFullYear()).slice(-2)}`;
   };
+
 
   const currentMediaPartners = filteredMediaPartners.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -118,7 +135,7 @@ const Index: React.FC = () => {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, delete it!',
     });
-  
+
     if (confirmed.isConfirmed) {
       try {
         const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner/${id}`, {
@@ -136,45 +153,45 @@ const Index: React.FC = () => {
       }
     }
   }
-  
+
   const deleteMultiple = async () => {
     if (selectedMediaPartners.length === 0) {
-        Swal.fire('No media partners selected', 'Please select media partners to delete.', 'warning');
-        return;
+      Swal.fire('No media partners selected', 'Please select media partners to delete.', 'warning');
+      return;
     }
 
     const confirmed = await Swal.fire({
-        title: 'Are you sure?',
-        text: `You are about to delete selected media partners.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete them!',
+      title: 'Are you sure?',
+      text: `You are about to delete selected media partners.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete them!',
     });
 
     if (confirmed.isConfirmed) {
-        const token = localStorage.getItem('jwt_token');
-        try {
-            const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner-delete-multiple`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                data: { ids: selectedMediaPartners },
-            });
-            
-            Swal.fire('Deleted!', response.data.message, 'success');
-            setMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id)));
-            setFilteredMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id))); // Update filtered list
-            setSelectedMediaPartners([]);
-            setIsSelectAll(false);
-        } catch (error) {
-            console.error('Error deleting media partners:', error);
-            Swal.fire('Error!', 'There was an error deleting the media partners.', 'error');
-        }
+      const token = localStorage.getItem('jwt_token');
+      try {
+        const response = await axios.delete(`${process.env.REACT_APP_API_BASE_URL}media-partner-delete-multiple`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: { ids: selectedMediaPartners },
+        });
+
+        Swal.fire('Deleted!', response.data.message, 'success');
+        setMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id)));
+        setFilteredMediaPartners((prev) => prev.filter((partner) => !selectedMediaPartners.includes(partner.id))); // Update filtered list
+        setSelectedMediaPartners([]);
+        setIsSelectAll(false);
+      } catch (error) {
+        console.error('Error deleting media partners:', error);
+        Swal.fire('Error!', 'There was an error deleting the media partners.', 'error');
+      }
     }
-};
-  
+  };
+
   const breadcrumbs = [{ label: 'Manage Media Partners', url: '' }];
 
   const columns = [
@@ -193,16 +210,36 @@ const Index: React.FC = () => {
       width: '50px',
     },
     {
+      name: 'ID',
+      selector: (row: MediaPartner) => row.id.toString(),
+      sortable: true,
+      width: '100px',
+    },
+
+    {
+      name: 'Date', // Header name
+      selector: (row: MediaPartner) => formatDate(row.created_at), // Format created_at using formatDate function
+      sortable: true, // Allow sorting
+      width: '150px', // Adjust width as necessary
+    },
+
+    {
       name: 'Name',
       selector: (row: MediaPartner) => row.name,
       sortable: true,
       width: '200px',
     },
     {
-      name: 'Image',
+      name: 'Logo',
       cell: (row: MediaPartner) => <img src={row.image} alt={row.name} style={{ width: '50px', height: '50px' }} />,
       sortable: false,
-      width: '100px',
+      width: '150px',
+    },
+    {
+      name: 'Award Year',
+      selector: (row: MediaPartner) => row.award_id,
+      sortable: true,
+      width: '150px',
     },
     {
       name: 'Status',
@@ -210,11 +247,11 @@ const Index: React.FC = () => {
       sortable: true,
       width: '150px',
     },
-    {
-      selector: (row: MediaPartner) => formatDate(row.date),
-      sortable: true,
-      width: '150px',
-    },
+    // {
+    //   selector: (row: MediaPartner) => formatDate(row.date),
+    //   sortable: true,
+    //   width: '150px',
+    // },
     {
       name: 'Action',
       cell: (row: MediaPartner) => (
@@ -272,10 +309,25 @@ const Index: React.FC = () => {
       <Helmet>
         <title>{pageTitle ? pageTitle : ''}</title>
       </Helmet>
+      <div id="kt_app_toolbar" className="app-toolbar mb-5">
+        <Breadcrumb breadcrumbs={breadcrumbs} />
+      </div>
       <div className="d-flex flex-column flex-column-fluid">
-        <div id="kt_app_toolbar" className="app-toolbar mb-5">
-          <Breadcrumb breadcrumbs={breadcrumbs} />
-        </div>
+        <Search
+          nameSearchTerm={nameSearchTerm}
+          fromDate={fromDate}
+          toDate={toDate}
+          statusSearchTerm={statusSearchTerm}
+          onNameSearchChange={handleNameSearchChange}
+          onFromDateChange={setFromDate} // Set fromDate
+          onToDateChange={setToDate} // Set toDate
+          onStatusSearchChange={handleStatusSearchChange}
+          onSearch={handleSearch} // Pass the search handler
+          onReset={handleReset} // Pass the reset handler
+        />
+      </div>
+      <div className="d-flex flex-column flex-column-fluid">
+
         <div id="kt_app_content" className="app-content flex-column-fluid">
           <div id="kt_app_content_container" className="app-container">
             <div className="card card-flush mb-5">
@@ -299,17 +351,8 @@ const Index: React.FC = () => {
                 </div>
 
                 {/* Add the Search component here */}
-                <Search
-                  nameSearchTerm={nameSearchTerm}
-                  dateSearchTerm={dateSearchTerm}
-                  statusSearchTerm={statusSearchTerm}
-                  onNameSearchChange={handleNameSearchChange}
-                  onDateSearchChange={handleDateSearchChange}
-                  onStatusSearchChange={handleStatusSearchChange}
-                  onSearch={handleSearch} // Pass the search handler
-                  onReset={handleReset} // Pass the reset handler
-                />
-                
+
+
                 <DataTable
                   columns={columns}
                   data={currentMediaPartners}
@@ -318,7 +361,7 @@ const Index: React.FC = () => {
                   onChangeRowsPerPage={handleItemsPerPageChange}
                   customStyles={customStyles}
                 />
-                
+
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
