@@ -25,7 +25,10 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
     Route::middleware('auth:api')->group(function () {
         Route::post('/update-profile', [LoginController::class, 'updateProfile'])->name('updateProfile');
         Route::any('/get-user', [LoginController::class, 'getProfile'])->name('get-user'); 
+        Route::post('change-award-year', [LoginController::class, 'changeAwardYear'])->name('change-award-year');
+        
         Route::post('/change-password', [LoginController::class, 'changePassword'])->name('change-password');
+
         
         Route::resource('award-category', 'AwardCategoryController');
         Route::group(['controller' => 'AwardCategoryController'], function () {
@@ -34,12 +37,36 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
 
         Route::resource('/awards', 'AwardController');
         Route::group(['controller' => 'AwardController'], function () {
-            Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('award-delete-multiple-datatable');
+            Route::delete('/awards-delete-multiple', 'deleteMultipleAwardsById')->name('awards-delete-multiple');
+        });
+        
+        // Route::post('/update/{id}', 'SupportingAssociationController@update');
+        Route::resource('/supporting-association', 'SupportingAssociationController');
+        Route::group(['controller' => 'SupportingAssociationController'], function () {
+            Route::delete('/supporting-association-delete-multiple', 'deleteMultipleSupportingAssociationsById')->name('supporting-association-delete-multiple');
         });
 
         Route::resource('/sponsors', 'SponsorController');
         // Route::group(['controller' => 'SponsorController'], function () {
         //     Route::post('sponsor-multiple-delete', 'multipleDelete')->name('sponsor-multiple-delete');
         // });
+
+        Route::resource('media-partner', 'MediaPartnerController');
+        Route::group(['controller' => 'MediaPartnerController'], function () {
+            Route::delete('/media-partner-delete-multiple', 'deleteMultiple')->name('media-partner-delete-multiple-datatable');
+
+        });
+
+        Route::resource('news', 'NewsController');
+        Route::group(['controller' => 'NewsController'], function () {
+            Route::delete('/news-delete-multiple', 'deleteMultiple')->name('news-delete-multiple-datatable');
+
+        });
+
+        Route::resource('videos', 'VideosController');
+        Route::group(['controller' => 'VideosController'], function () {
+            Route::delete('/videos-delete-multiple', 'deleteMultiple')->name('videos-delete-multiple-datatable');
+
+        });
     }); 
 });

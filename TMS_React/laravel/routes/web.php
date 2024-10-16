@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Route::get('/abcde',function () {
+//     $path = ('admin/uploads/supporting-associations/33/107118551-2024-mustang-18.jpg');
+//     return response()->file($path);
+// });

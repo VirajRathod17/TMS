@@ -10,18 +10,18 @@ function Edit() {
   const [initialValues, setInitialValues] = useState(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const pageTitle = 'Edit Award'; 
+  const pageTitle = 'Edit Media Partner'; 
 
   useEffect(() => {
       document.title = pageTitle; 
   }, [pageTitle]); 
 
   useEffect(() => {
-    const fetchAward = async () => {
+    const fetchMediaPartner = async () => {
       setLoading(true);
       const token = localStorage.getItem('jwt_token');
       const response = await axios.get(
-        process.env.REACT_APP_API_BASE_URL + `awards/${id}`,
+        process.env.REACT_APP_API_BASE_URL + `media-partner/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -33,12 +33,12 @@ function Edit() {
         setLoading(false);
       }
     };
-    fetchAward();
+    fetchMediaPartner();
   }, [id]);
 
   const breadcrumb = [
-    {label:'Manage Award', url: '/awards'},
-    {label:'Edit Award', url: ''},
+    {label:'Manage Media Partner', url: '/media-partner'},
+    {label:'Edit Media Partner', url: ''},
   ]
 
   return (
@@ -58,9 +58,9 @@ function Edit() {
             <Form
               mode="edit"
               initialValues={initialValues}
-              submitUrl={process.env.REACT_APP_API_BASE_URL + `awards/${id}`}
-              redirectUrl="/awards"
-              successMessage="Award has been updated successfully"
+              submitUrl={process.env.REACT_APP_API_BASE_URL + `media-partner/${id}`}
+              redirectUrl="/media-partner"
+              successMessage="Media Partner has been updated successfully"
               pageTitle={pageTitle}
             />
 		      )}

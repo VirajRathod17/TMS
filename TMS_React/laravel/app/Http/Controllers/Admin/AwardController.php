@@ -28,6 +28,12 @@ class AwardController extends Controller
 
         if(isset($awards))
         {
+
+            foreach($awards as $award)
+            {
+                $award->date = date('d-m-Y', strtotime($award->created_at));
+            }
+
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = "Award";
             $this->responseData['data'] = $awards;
@@ -109,7 +115,7 @@ class AwardController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
+    {        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|min:2|max:100',
             'year' => 'required|string|min:4|max:4',

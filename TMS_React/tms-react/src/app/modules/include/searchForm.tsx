@@ -1,79 +1,143 @@
-import React, { useState } from 'react';
-import { PageTitle } from '../../../_metronic/layout/core';
+import React from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface SearchFormProps {
-    module: string; 
+    module: string;
     moduleTitle: string;
+    onSearch: (query: { name: string; awardCategoryStatus: string; from_date: string; to_date: string }) => void;
+    onReset: () => void;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle}) => {
-  return (
+const SearchForm: React.FC<SearchFormProps> = ({ module, moduleTitle, onSearch,onReset}) => {
+    const [name, setName] = React.useState('');
+    const [awardCategoryStatus, setAwardCategoryStatus] = React.useState('');
+    const [loading, setLoading] = React.useState(false);
+    const [from_date, setFromDate] = React.useState('');
+    const [to_date, setToDate] = React.useState('');
+
+    // Utility function to format date as dd-mm-yyyy
+    const formatDate = (date: string): string => {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const year = d.getFullYear(); // Full year (yyyy)
+        return `${day}-${month}-${year}`;
+    };
+
+    const handleSearch = () => {
+        if (module === 'award-category') {
+            setLoading(true);
+
+            // Format the from_date and to_date
+            const formattedFromDate = from_date ? formatDate(from_date) : '';
+            const formattedToDate = to_date ? formatDate(to_date) : '';
+
+            // Pass both name and awardCategoryStatus in one object, including formatted dates
+            onSearch({
+                name,
+                awardCategoryStatus,
+                from_date: formattedFromDate,
+                to_date: formattedToDate,
+            });
+
+            setLoading(false);
+        }
+    };
+
+    const handleReset = () => {
+        // Reset all state variables
+        setName('');
+        setAwardCategoryStatus('');
+        setFromDate('');
+        setToDate('');
+        onReset();
+    };
+
+    return (
         <div className="mb-15">
-
-        <div className="mb-6 ">
-            <h2>Search {moduleTitle}</h2>
-        </div>
-
-        {module === 'award-category' &&  
-        (
-            <div className="row mt-6">
-                <div className="row mb-5" style={{ marginBottom: '5px' }}>
+            <div className="mb-6">
+                <h2>Search {moduleTitle}</h2>
+            </div>
+            {module === 'award-category' && (
+                <div className="row mt-6">
                     <div className="col-lg-3 mb-lg-0">
                         <label>Name:</label>
-                        <input type="text" id="name" className="form-control form-control-solid datatable-input"
-                            placeholder="Enter Name" data-col-index="{{ $name }}"/>
+                        <input
+                            type="text"
+                            id="name"
+                            className="form-control form-control-solid"
+                            placeholder="Enter Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
                     </div>
                     <div className="col-lg-3 mb-lg-0">
-                        <label>Email:</label>
-                        <input type="text" id="email" className="form-control form-control-solid datatable-input"
-                            placeholder="Enter Email" data-col-index="{{ $email }}"/>
+                        <label>Status:</label>
+                        <select
+                            id="award_category_status"
+                            className="form-control form-select datatable-input"
+                            name="awardCategoryStatus"
+                            data-control="select2"
+                            data-hide-search="true"
+                            value={awardCategoryStatus}
+                            onChange={(e) => setAwardCategoryStatus(e.target.value)}
+                        >
+                            <option value="">-Choose Status-</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Active">Active</option>
+                        </select>
                     </div>
-                    <div className="col-lg-3 mb-lg-0">
-                        <label>Subject:</label>
-                        <input type="text" id="subject" className="form-control form-control-solid datatable-input"
-                            placeholder="Enter Subject" data-col-index="{{ $subject }}"/>
-                    </div>
+                </div>
+            )}
+            <div className="row">
+                <div className="col-lg-3 mb-lg-0">
+                    <label>From Date:</label>
+                    <input
+                        type="date"
+                        id="from_date"
+                        className="form-control form-control-solid"
+                        onChange={(e) => setFromDate(e.target.value)}
+                    />
+                </div>
+                <div className="col-lg-3 mb-lg-0">
+                    <label>To Date:</label>
+                    <input
+                        type="date"
+                        id="to_date"
+                        className="form-control form-control-solid"
+                        onChange={(e) => setToDate(e.target.value)}
+                    />
+                </div>
+                <div className="col-lg-3 my-5">
+                    <button
+                        className="btn btn-primary btn-primary--icon"
+                        onClick={handleSearch}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <span>Loading...</span>
+                        ) : (
+                            <span>
+                                <i className="la la-search"></i>
+                                <span>Search</span>
+                            </span>
+                        )}
+                    </button>
+                    &nbsp;&nbsp;
+                    <button
+                        className="btn btn-secondary btn-secondary--icon"
+                        onClick={handleReset}
+                    >
+                        <span>
+                            <i className="la la-close"></i>
+                            <span>Reset</span>
+                        </span>
+                    </button>
                 </div>
             </div>
-        )}
-
-            <div className="row ">
-            <div className="col-lg-3  mb-lg-0 mb-6">
-                <label>From Date:</label>
-                <div className="input-daterange input-group" id="kt_datepicker">
-                    <input type="text" className="form-control form-control-solid datatable-input" id="from_date"
-                        name="from_date" placeholder="Choose From Date" data-col-index="{{ $from_date }}"/>
-                </div>
-            </div>
-            <div className="col-lg-3  mb-lg-0 mb-6">
-                <label>To Date:</label>
-                <div className="input-daterange input-group" id="kt_datepicker">
-                    <input type="text" className="form-control form-control-solid datatable-input" id="to_date"
-                        name="to_date" placeholder="Choose To Date" data-col-index="{{ $to_date }}"/>
-                </div>
-            </div>
-
-            <div className="col-lg-3 my-5 ">
-                <button className="btn btn-primary btn-primary--icon" id="kt_search">
-                    <span>
-                        <i className="la la-search"></i>
-                        <span>Search</span>
-                    </span>
-                </button>
-                &nbsp;&nbsp;
-                <button className="btn btn-secondary btn-secondary--icon" id="kt_reset">
-                    <span>
-                        <i className="la la-close"></i>
-                        <span>Reset</span>
-                    </span>
-                </button>
-            </div>
-
         </div>
+    );
+};
 
-    </div>
-
-  )
-}
-
-export default SearchForm
+export default SearchForm;

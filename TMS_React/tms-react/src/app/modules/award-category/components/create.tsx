@@ -9,6 +9,7 @@ function Create() {
     main_sponsored_id: '',
     status: '',
     description: '',
+    questions: [''],
   };
   const pageTitle = 'Add Award Categories'; 
 
