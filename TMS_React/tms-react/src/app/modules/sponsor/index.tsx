@@ -225,18 +225,17 @@ function Index() {
                                             <tr key={category.id}>
                                                 <td>
                                                     <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
-                                                    <input
+                                                    {/* <input
                                                         className="form-check-input"
                                                         type="checkbox"
-                                                        checked={selectedIds.includes(category.id)} // Remains the same
-                                                        // onChange={() => handleSelect(category.id)}
-                                                    />
+                                                        checked={selectedIds.includes(category.id)} 
+                                                    /> */}
                                                     </div>
                                                 </td>
-                                                <td>{category.id}</td>
+                                                {/* <td>{category.id}</td>
                                                 <td>{category.name}</td>
                                                 <td>{category.award_id}</td>
-                                                <td>{category.main_sponsored_id === 0 ? 'Sponso1' : 'Sponso2'}</td>
+                                                <td>{category.main_sponsored_id === 0 ? 'Sponso1' : 'Sponso2'}</td> */}
                                                 <td>
                                                     <span
                                                         className={`badge badge-${
@@ -247,12 +246,11 @@ function Index() {
                                                     </span>
                                                 </td>
                                                 <td className="text-end">
-                                                    <Link to={`/award-category/edit/${category.id}`} className="btn btn-sm btn-light me-1">
+                                                    {/* <Link to={`/award-category/edit/${category.id}`} className="btn btn-sm btn-light me-1">
                                                         Edit
-                                                    </Link>
+                                                    </Link> */}
                                                     <button
                                                         className="btn btn-sm btn-danger"
-                                                        // onClick={() => Delete(category.id)}
                                                     >
                                                         Delete
                                                     </button>
