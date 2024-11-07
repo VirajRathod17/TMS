@@ -54,7 +54,6 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::resource('media-partner', 'MediaPartnerController');
         Route::group(['controller' => 'MediaPartnerController'], function () {
             Route::delete('/media-partner-delete-multiple', 'deleteMultiple')->name('media-partner-delete-multiple-datatable');
-
         });
 
         Route::resource('news', 'NewsController');
@@ -66,7 +65,12 @@ Route::group(['namespace' => 'App\Http\Controllers\Admin'], function () {
         Route::resource('videos', 'VideosController');
         Route::group(['controller' => 'VideosController'], function () {
             Route::delete('/videos-delete-multiple', 'deleteMultiple')->name('videos-delete-multiple-datatable');
-
         });
+
+        Route::resource('judges', 'JudgesController');
+        Route::group(['controller' => 'JudgesController'], function () {
+            Route::post('judges-multiple-delete', 'multipleDelete')->name('judges-multiple-delete');
+        });
+
     }); 
 });

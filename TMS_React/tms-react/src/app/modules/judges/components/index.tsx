@@ -5,102 +5,82 @@ import Breadcrumb from '../../include/breadcrumbs';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import {Helmet} from 'react-helmet';
-import SearchForm from '../../include/searchForm';
 import DataTable from 'react-data-table-component';
 import Pagination from '../../include/pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPenToSquare, faTrash , faEye } from '@fortawesome/free-solid-svg-icons';
-import { Badge } from 'react-bootstrap';
-
-interface AwardCategory {
+import fetchJudges  from './fetchJudges';
+import SearchJudges from './searchJudges';
+interface Judges {
     id: number;
     date: string;
     name: string;
     award_id: number;
-    main_sponsored_id: number; 
     status: string; 
+    post: string;
 }
-
 function Index() {
-  const [awardCategories, setAwardCategories] = useState<AwardCategory[]>([]);
+  const [judges, setJudges] = useState<Judges[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchName, setSearchName] = useState<string>('');
-  const [searchStatus, setSearchStatus] = useState<string>('');
-  const [filteredAwardCategories, setFilteredAwardCategories] = useState<AwardCategory[]>([]);
+  const [filteredJudges, setFilteredJudges] = useState<Judges[]>([]);
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
-  const pageTitle = 'Manage Award Categories'; 
-  const module = 'award-category';
-  const moduleTitle = 'Award Categories';
+  const [searchPost, setSearchPost] = useState<string>(''); 
+  const pageTitle = 'Manage Judges Panel'; 
+  const moduleTitle = 'Judges Panel';
     useEffect(() => {
         document.title = pageTitle; 
     }, [pageTitle]); 
 
+    const breadcrumbs = [{ label: 'Manage Judges Panel', url: '' }];
+    
     useEffect(() => {
-        const fetchAwardCategories = async () => {
-            try {
-                const token = localStorage.getItem('jwt_token');
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_BASE_URL}award-category`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-                setAwardCategories(response.data.data);
-            } catch (error) {
-                console.error('Error fetching award categories:', error);
-            } finally {
-                setLoading(false);
-            }
+        const getJudges = async () => {
+          try {
+            const data = await fetchJudges();
+            setJudges(data);
+          } catch (error) {
+            console.error('Error fetching judges:', error);
+          } finally {
+            setLoading(false);
+          }
         };
+    
+        getJudges();
+      }, []);
 
-        fetchAwardCategories();
-    }, []);
 
-
-
-       // Filter the data based on search query
-       useEffect(() => {
+      useEffect(() => {
         const filterData = () => {
-          const filtered = awardCategories.filter((category) => {
-            const matchesName = category.name.toLowerCase().includes(searchName.toLowerCase());
-            const matchesStatus = 
-              (searchStatus === 'Active' && category.status.toLowerCase() === 'active') ||
-              (searchStatus === 'Inactive' && category.status.toLowerCase() === 'inactive') ||
-              searchStatus === '';
-      
-            const matchesDateRange = (!fromDate || new Date(category.date) >= new Date(fromDate)) &&
-                                     (!toDate || new Date(category.date) <= new Date(toDate));
-      
-            return matchesName && matchesStatus && matchesDateRange;
+          const filtered = judges.filter((judge) => {
+            const matchesName = judge.name.toLowerCase().includes(searchName.toLowerCase());
+            const matchesDateRange = (!fromDate || new Date(judge.date) >= new Date(fromDate)) &&
+                                     (!toDate || new Date(judge.date) <= new Date(toDate));
+            const matchesPost = judge.post.toLowerCase().includes(searchPost.toLowerCase());
+            return matchesName && matchesDateRange && matchesPost;
           });
       
-          setFilteredAwardCategories(filtered);
+          setFilteredJudges(filtered);
         };
       
         filterData();
-      }, [searchName, searchStatus, fromDate, toDate, awardCategories]);
-      
-    
+      }, [searchName,fromDate, toDate, judges, searchPost]);
 
-    // Paginate the filtered data
-    const paginatedData = filteredAwardCategories.slice(
+     // Paginate the filtered data
+     const paginatedData = judges.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
 
-    const totalPages = Math.ceil(filteredAwardCategories.length / itemsPerPage);
-    
+    const totalPages = Math.ceil(filteredJudges.length / itemsPerPage);
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            const allIds = awardCategories.map((category) => category.id);
+            const allIds = judges.map((judge) => judge.id);
             setSelectedIds(allIds);
         } else {
             setSelectedIds([]);
@@ -112,11 +92,11 @@ function Index() {
             prev.includes(id) ? prev.filter((selectedId) => selectedId !== id) : [...prev, id]
         );
     };
-
+      
     const handleRemoveSelected = async () => {
         const confirmed = await Swal.fire({
             title: 'Are you sure?',
-            text: 'Do you want to delete the selected categories?',
+            text: 'Do you want to delete the selected judges?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -129,7 +109,7 @@ function Index() {
             const token = localStorage.getItem('jwt_token');
             try {
                 const response = await axios.post(
-                    `${process.env.REACT_APP_API_BASE_URL}award-category-multiple-delete`,
+                    `${process.env.REACT_APP_API_BASE_URL}judges-multiple-delete`,
                     { ids: selectedIds }, 
                     {
                         headers: {
@@ -140,19 +120,19 @@ function Index() {
                 if (response.data.status === 'success') {
                     Swal.fire('Deleted!', 'Award categories have been deleted.', 'success');
                     // Update the state to remove deleted categories
-                    setAwardCategories((prevCategories) =>
-                        prevCategories.filter((category) => !selectedIds.includes(category.id))
+                    setJudges((prevCategories) =>
+                        prevCategories.filter((judge) => !selectedIds.includes(judge.id))
                     );
                     setSelectedIds([]); 
                 } else {
                     Swal.fire('Error!', response.data.message, 'error');
                 }
             } catch (error) {
-                console.error('Error deleting categories:', error);
-                Swal.fire('Error!', 'An error occurred while deleting the categories.', 'error');
+                console.error('Error deleting judges:', error);
+                Swal.fire('Error!', 'An error occurred while deleting the judges.', 'error');
             }
         } else {
-            Swal.fire('Cancelled', 'The selected categories were not deleted', 'error');
+            Swal.fire('Cancelled', 'The selected judges were not deleted', 'error');
         }
     };
 
@@ -160,7 +140,7 @@ function Index() {
         const token = localStorage.getItem('jwt_token');
         const confirmed = await Swal.fire({
             title: 'Are you sure?',
-            text: "Do you really want to delete this category?",
+            text: "Do you really want to delete this judge?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -172,7 +152,7 @@ function Index() {
         if (confirmed.isConfirmed) {
             try {
                 const response = await axios.delete(
-                    `${process.env.REACT_APP_API_BASE_URL}award-category/${id}`, {
+                    `${process.env.REACT_APP_API_BASE_URL}judges/${id}`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
@@ -181,23 +161,23 @@ function Index() {
                 Swal.fire('Deleted!', response.data.message, 'success');
 
                 // Update the award categories state
-                setAwardCategories(prevCategories => 
-                    prevCategories.filter(category => category.id !== id)
+                setJudges(prevJudges => 
+                    prevJudges.filter(judge => judge.id !== id)
                 );
             } catch (error) {
-                console.error('Error deleting award category:', error);
-                Swal.fire('Error!', 'An error occurred while deleting the category.', 'error');
+                console.error('Error deleting judge:', error);
+                Swal.fire('Error!', 'An error occurred while deleting the judge.', 'error');
             }
         } else {
-            Swal.fire('Cancelled', 'Award category was not deleted', 'error');
+            Swal.fire('Cancelled', 'Judge was not deleted', 'error');
         }
     };
 
-    const breadcrumbs = [{ label: 'Manage Award Categories', url: '' }];
+
     const columns = [
         {
-          name: <input className="form-check-input" type="checkbox" checked={selectedIds.length === awardCategories.length} onChange={handleSelectAll} />,
-          cell: (row: AwardCategory) => (
+          name: <input className="form-check-input" type="checkbox" checked={selectedIds.length === judges.length} onChange={handleSelectAll} />,
+          cell: (row: Judges) => (
             <div className="form-check form-check-sm form-check-custom form-check-solid me-3">
               <input
                 className="form-check-input"
@@ -216,37 +196,37 @@ function Index() {
         },
         {
           name: 'ID',
-          selector: (row: AwardCategory) => row.id,
+          selector: (row: Judges) => row.id,
           sortable: true,
           width: '80px',
         },
         {
           name: 'Date',
-          selector: (row: AwardCategory) => row.date,
+          selector: (row: Judges) => row.date,
           sortable: true,
           width: '130px',
         },
         {
           name: 'Name',
-          selector: (row: AwardCategory) => row.name,
+          selector: (row: Judges) => row.name,
           sortable: true,
           width: '200px',
         },
         {
           name: 'Award ID',
-          selector: (row: AwardCategory) => row.award_id,
-          sortable: false,
+          selector: (row: Judges) => row.award_id,
+          sortable: true,
           width: '150px',
         },
         {
-          name: 'Main Sponsored ID',
-          selector: (row: AwardCategory) => row.main_sponsored_id,
-          sortable: true,
-          width: '200px',
-        },
+            name: 'Post',
+            selector: (row: Judges) => row.post,
+            sortable: true,
+            width: '200px',
+          },
         {
           name: 'Status',
-          cell: (row: AwardCategory) => 
+          cell: (row: Judges) => 
             row.status === 'Active' 
               ? <span className="badge badge-light-success">{row.status}</span> 
               : <span className="badge badge-light-danger">{row.status}</span>,
@@ -255,13 +235,13 @@ function Index() {
         },
         {
           name: 'Action',
-          cell: (row: AwardCategory) => (
+          cell: (row: Judges) => (
             <>
               <div className="text-end">
-                <Link to={`/award-category/view/${row.id}`} className="btn btn-sm btn-primary me-2">
+                <Link to={`/judges/view/${row.id}`} className="btn btn-sm btn-primary me-2">
                   <FontAwesomeIcon icon={faEye} />
                 </Link>
-                <Link to={`/award-category/edit/${row.id}`} className="btn btn-sm btn-info me-2">
+                <Link to={`/judges/edit/${row.id}`} className="btn btn-sm btn-info me-2">
                    <FontAwesomeIcon icon={faPenToSquare} />
                 </Link>
                 <button onClick={() => Delete(row.id)} className="btn btn-sm btn-danger">
@@ -312,22 +292,20 @@ function Index() {
       }
 
       // Updated handleSearch function to match the expected structure
-      const handleSearch = ({ name, awardCategoryStatus, from_date, to_date }: 
-        { name: string; awardCategoryStatus: string, from_date: string, to_date: string }) => {
+      const handleSearch = ({ name,from_date, to_date, post }: 
+        { name: string; from_date: string, to_date: string, post: string}) => {
         setSearchName(name);
-        setSearchStatus(awardCategoryStatus);
-        setFromDate(from_date); // New state for date filtering
-        setToDate(to_date);     // New state for date filtering
+        setFromDate(from_date);
+        setToDate(to_date);  
+        setSearchPost(post);
       };
-      
+          
       const handleReset = () => {
-        setFilteredAwardCategories(awardCategories);
-    };
+        setFilteredJudges(judges);
+      };
+
       return (
         <div className="app-main flex-column flex-row-fluid" id="kt_app_main">
-          <Helmet>
-            <title>{pageTitle ? pageTitle : ''}</title>
-          </Helmet>
           <div className="d-flex flex-column flex-column-fluid">
             <div id="kt_app_toolbar" className="app-toolbar mb-5">
               <Breadcrumb breadcrumbs={breadcrumbs} />
@@ -336,8 +314,7 @@ function Index() {
               <div id="kt_app_content_container" className="app-container">
                 <div className="card card-flush mb-5">
                   <div className="card-body pt-6 pb-3">
-                  <SearchForm  module={module} 
-                      moduleTitle={moduleTitle} onSearch={handleSearch} onReset={handleReset}/>
+                  <SearchJudges moduleTitle={moduleTitle} onSearch={handleSearch} onReset={handleReset}/>
                   </div>
                 </div>
                 <div className="card card-flush mb-5">
@@ -348,7 +325,7 @@ function Index() {
                       </div>
                       <div className="d-flex justify-content-end" data-kt-docs-table-toolbar="base">
                         {selectedIds.length === 0 && (
-                          <Link to="/award-category/create" className="btn btn-primary" style={{ marginLeft: '10px' }}>
+                          <Link to="/judges/create" className="btn btn-primary" style={{ marginLeft: '10px' }}>
                             Add
                           </Link>
                         )}
@@ -367,10 +344,10 @@ function Index() {
                     </div>
                     <DataTable
                         columns={columns}
-                        data={paginatedData}
+                        data={filteredJudges}
                         customStyles={customStyles}
                         pagination={false}
-                        noDataComponent="No Award Categories found"
+                        noDataComponent="No Judges found"
                     />
                     {!loading && (
                           <Pagination

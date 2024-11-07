@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbl_award_categories', function (Blueprint $table) {
+        Schema::create('tbl_judges', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('award_id');
-            $table->string('slug')->unique()->nullable();
-            $table->string('name');
+            $table->unsignedBigInteger('award_id')->nullable();
+            $table->string('name')->nullable();
+            $table->string('slug')->nullable();
+            $table->string('post')->nullable();
+            $table->string('image')->nullable();
             $table->text('description')->nullable();
-            $table->longtext('credentials')->nullable();
-            $table->unsignedBigInteger('main_sponsored_id')->nullable();
             $table->enum('status', [0, 1])->comment('0: inactive, 1: active')->default(1);
+            $table->enum('is_chairman', [0, 1])->comment('0: no , 1: yes')->default(0);
             $table->timestamps();
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('award_categories');
+        Schema::dropIfExists('tbl_judges');
     }
 };

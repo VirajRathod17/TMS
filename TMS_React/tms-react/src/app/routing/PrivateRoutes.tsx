@@ -22,6 +22,7 @@ const PrivateRoutes = () => {
   // const Media_Partner_Index = lazy(() => import('../modules/media-partner/components/index'));
 
 
+  const Judges_Index = lazy(() => import('../modules/judges/components/index'));
   if (isTokenExpired()) {
     // Redirect to login if the token is expired
     return <Navigate to="/login" />
