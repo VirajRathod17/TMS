@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 
-const modules = [ 'award-category', 'supporting-association', 'media-partner', 'news' , 'videos'];
+const modules = [ 'awards', 'award-category','judges','sponsors','award-category', 'supporting-association', 'media-partner', 'news' , 'videos'];
 
 // 'awards',
 

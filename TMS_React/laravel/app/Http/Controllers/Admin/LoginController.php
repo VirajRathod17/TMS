@@ -53,7 +53,7 @@ class LoginController extends Controller
         
             // Return success response
             $this->responseData['status'] = 'success';
-            $this->responseData['message'] = "Login successful";
+            $this->responseData['message'] = "Login successful";   
             $this->responseData['token'] = $token;
             return response()->json($this->responseData);
         } else {
@@ -131,7 +131,6 @@ class LoginController extends Controller
                     }
                 }
 
-                // Create the directory if it doesn't exist
                 if (!file_exists(public_path($imagePath))) {
                     mkdir(public_path($imagePath), 0777, true);
                 }
@@ -176,7 +175,7 @@ class LoginController extends Controller
     
         // Use the getImage function to retrieve the full image path
         $user->image = Admin::getImage($user->id, $user->image);
-    
+        
         // Return user data one by one
         $this->responseData['status'] = 'success';
         $this->responseData['message'] = 'Profile retrieved successfully.';
@@ -228,18 +227,17 @@ class LoginController extends Controller
             $user->password = Hash::make($request->new_password);
             $user->save();
 
-            // Return success response
+
             $this->responseData['status'] = 'success';
             $this->responseData['message'] = 'Password changed successfully.';
             return response()->json($this->responseData);
         } catch (\Exception $e) {
-            // Handle any errors
+
             $this->responseData['status'] = 'error';
             $this->responseData['message'] = 'Password change failed. Please try again.';
             return response()->json($this->responseData);
         }
     }
-
 
     public function changeAwardYear(Request $request)
     {

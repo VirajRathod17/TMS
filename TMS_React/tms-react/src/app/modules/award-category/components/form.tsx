@@ -230,9 +230,7 @@ const Form: React.FC<FormProps> = ({ mode, initialValues, submitUrl, redirectUrl
                       </Link>
                       <button type="submit" className="btn btn-primary">
                         Submit
-                      </button>
-                      &nbsp;
-                      
+                      </button>   
                     </div>
                   </div>
                 </div>

@@ -12,7 +12,7 @@ class SponsorController extends Controller
     */
     public function index()
     {
-        //
+       
     }
 
     /**
